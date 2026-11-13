@@ -1,0 +1,30 @@
+/* Deja espacio a la izquierda para el sidebar fijo */
+.contenido {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+}
+
+/* Espaciado interno de cada página */
+.pagina {
+  padding: 24px;
+}
+
+/* El fondo oscuro solo existe en móvil */
+.fondo {
+  display: none;
+}
+
+/* Pantallas de 900px o menos: el sidebar se oculta y el contenido usa todo el ancho */
+@media (max-width: 900px) {
+  .contenido {
+    margin-left: 0;
+  }
+
+  .fondo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, .4);
+  }
+}

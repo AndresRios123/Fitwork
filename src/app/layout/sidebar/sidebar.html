@@ -1,0 +1,30 @@
+<!-- [class.abierto] agrega la clase "abierto" cuando el menú está abierto en móvil -->
+<aside class="sidebar" [class.abierto]="abierto()">
+  <!-- Logo -->
+  <div class="logo">
+    <span class="logo-icono">
+      <i class="ph ph-lightning"></i>
+    </span>
+    <span class="logo-texto">FitWork</span>
+  </div>
+
+  <p class="etiqueta">MENÚ</p>
+
+  <!-- Recorre la lista "items" del .ts y crea un enlace por cada una.
+       routerLinkActive pone la clase "activo" (naranja) en la página actual. -->
+  <nav>
+    @for (item of items; track item.ruta) {
+      <a class="item" [routerLink]="item.ruta" routerLinkActive="activo" (click)="cerrar.emit()">
+        <i class="ph" [class]="item.icono"></i>
+        <span>{{ item.texto }}</span>
+      </a>
+    }
+  </nav>
+
+  <!-- Tarjeta motivacional al final del sidebar -->
+  <div class="tarjeta">
+    <i class="ph ph-lightning"></i>
+    <strong>Supera tus límites</strong>
+    <p>Tu mejor versión se construye hoy.</p>
+  </div>
+</aside>
