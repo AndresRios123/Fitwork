@@ -1,0 +1,47 @@
+<header class="topbar">
+  <!-- Botón hamburguesa: solo se ve en móvil y abre el sidebar -->
+  <button class="hamburguesa" aria-label="Abrir menú" (click)="abrirMenu.emit()">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <!-- Breadcrumb: "FitWork / Página actual" -->
+  <nav class="breadcrumb">
+    <span>FitWork</span>
+    <span>/</span>
+    <strong>{{ paginaActual() }}</strong>
+  </nav>
+
+  <div class="acciones">
+    <!-- Campana con punto naranja de notificación -->
+    <button class="campana" aria-label="Notificaciones">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="punto"></span>
+    </button>
+
+    <!-- Usuario: avatar con iniciales, nombre y nivel. Al hacer clic abre el desplegable -->
+    <div class="usuario">
+      <button class="usuario-boton" (click)="alternarMenuUsuario()">
+        <span class="avatar">{{ iniciales }}</span>
+        <span class="datos">
+          <strong>{{ usuario.nombre }}</strong>
+          <small>{{ usuario.nivel }}</small>
+        </span>
+        <span class="material-symbols-outlined">expand_more</span>
+      </button>
+
+      <!-- Desplegable: solo existe mientras menuUsuarioAbierto sea true -->
+      @if (menuUsuarioAbierto()) {
+        <div class="desplegable">
+          <a routerLink="/perfil" (click)="cerrarMenuUsuario()">
+            <span class="material-symbols-outlined">person</span>
+            Mi perfil
+          </a>
+          <button (click)="cerrarSesion()">
+            <span class="material-symbols-outlined">logout</span>
+            Cerrar sesión
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>
