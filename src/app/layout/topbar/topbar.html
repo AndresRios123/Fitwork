@@ -21,10 +21,10 @@
     <!-- Usuario: avatar con iniciales, nombre y nivel. Al hacer clic abre el desplegable -->
     <div class="usuario">
       <button class="usuario-boton" (click)="alternarMenuUsuario()">
-        <span class="avatar">{{ iniciales }}</span>
+        <span class="avatar">{{ iniciales() }}</span>
         <span class="datos">
-          <strong>{{ usuario.nombre }}</strong>
-          <small>{{ usuario.nivel }}</small>
+          <strong>{{ usuario()?.nombre }}</strong>
+          <small>{{ usuario()?.nivel }}</small>
         </span>
         <span class="material-symbols-outlined">expand_more</span>
       </button>
