@@ -1,0 +1,150 @@
+/* Barra fija arriba al hacer scroll (sticky) */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 72px;
+  padding: 0 24px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Quita el estilo por defecto de los botones del navegador */
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* Oculta en escritorio; se muestra en móvil (ver @media al final) */
+.hamburguesa {
+  display: none;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  color: var(--gray-500);
+}
+
+.breadcrumb strong {
+  color: var(--gray-900);
+}
+
+/* margin-left: auto empuja campana y usuario hacia la derecha */
+.acciones {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.campana {
+  position: relative;
+  display: flex;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.campana:hover {
+  background: var(--gray-100);
+}
+
+/* Punto naranja sobre la campana */
+.punto {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+  background: var(--color-primary);
+}
+
+.usuario {
+  position: relative;
+}
+
+.usuario-boton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+}
+
+.usuario-boton:hover {
+  background: var(--gray-100);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.datos small {
+  color: var(--gray-500);
+}
+
+/* Menú desplegable del usuario, flotando debajo del avatar */
+.desplegable {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.desplegable a,
+.desplegable button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  color: var(--gray-700);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+}
+
+.desplegable a:hover,
+.desplegable button:hover {
+  background: var(--gray-100);
+}
+
+/* Móvil: aparece la hamburguesa y se oculta el nombre del usuario */
+@media (max-width: 900px) {
+  .hamburguesa {
+    display: flex;
+  }
+
+  .datos {
+    display: none;
+  }
+}

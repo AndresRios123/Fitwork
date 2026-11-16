@@ -1,0 +1,107 @@
+<section aria-labelledby="sesiones-titulo">
+  <header class="encabezado">
+    <div>
+      <h2 id="sesiones-titulo">Sesiones de entrenamiento</h2>
+      <p>Registra las series que completaste y consulta tu historial.</p>
+    </div>
+    @if (!abierto() && estado() === 'listo' && rutinas().length) {
+      <button type="button" class="primario" (click)="abrir()">Registrar sesión</button>
+    }
+  </header>
+
+  @if (estado() === 'error') {
+    <p class="error" role="alert">No se pudo leer el historial guardado en este navegador.</p>
+  }
+
+  <div role="status">{{ mensaje() }}</div>
+
+  @if (abierto()) {
+    <form class="panel" (submit)="$event.preventDefault(); guardar()" aria-labelledby="sesion-editor-titulo" novalidate>
+      <h3 id="sesion-editor-titulo">Nueva sesión</h3>
+      <div class="datos">
+        <label>
+          Rutina
+          <select #selector (change)="seleccionarRutina(selector.value)">
+            <option value="">Selecciona una rutina</option>
+            @for (item of rutinas(); track item.id) {
+              <option [value]="item.id">{{ item.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Fecha del entrenamiento
+          <input type="date" [formControl]="fecha" required>
+        </label>
+      </div>
+
+      @if (rutina(); as elegida) {
+        @for (ejercicio of elegida.ejercicios; track $index; let indice = $index) {
+          <fieldset>
+            <legend>{{ nombreEjercicio(ejercicio.ejercicioId) }}</legend>
+            <p>Planificado: {{ ejercicio.series }} × {{ ejercicio.repeticiones }}</p>
+            @for (fila of seriesPorEjercicio()[indice].controls; track fila; let serie = $index) {
+              <div class="serie" [formGroup]="fila">
+                <span class="numero">Serie {{ serie + 1 }}</span>
+                <label>
+                  Repeticiones
+                  <input type="number" formControlName="repeticiones" min="1" step="1" required
+                    [attr.aria-invalid]="fila.controls.repeticiones.touched && fila.controls.repeticiones.invalid">
+                </label>
+                <label>
+                  Peso (kg, opcional)
+                  <input type="number" formControlName="pesoKg" min="0" step="any"
+                    [attr.aria-invalid]="fila.controls.pesoKg.touched && fila.controls.pesoKg.invalid">
+                </label>
+                <button type="button" [attr.aria-label]="'Quitar serie ' + (serie + 1) + ' de ' + nombreEjercicio(ejercicio.ejercicioId)"
+                  (click)="quitarSerie(indice, serie)">Quitar</button>
+              </div>
+            }
+            <button type="button" (click)="agregarSerie(indice)">Agregar serie</button>
+          </fieldset>
+        }
+      }
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="button" (click)="abierto.set(false)">Cancelar</button>
+        <button type="submit" class="primario">Guardar sesión</button>
+      </div>
+    </form>
+  }
+
+  @if (estado() === 'listo') {
+    <div class="historial">
+      <h3>Historial de sesiones</h3>
+      @for (sesion of sesiones(); track sesion.id) {
+        <details class="panel">
+          <summary>
+            <strong>{{ sesion.nombreRutina }}</strong>
+            <time [attr.datetime]="sesion.fecha">{{ sesion.fecha | date:'dd/MM/yyyy' }}</time>
+          </summary>
+          @for (ejercicio of sesion.ejercicios; track $index) {
+            <h4>{{ ejercicio.nombre }}</h4>
+            <ol>
+              @for (serie of ejercicio.series; track $index) {
+                <li>
+                  {{ serie.repeticiones }} repeticiones
+                  @if (serie.pesoKg !== null) {
+                    · {{ serie.pesoKg }} kg
+                  }
+                </li>
+              }
+            </ol>
+          }
+        </details>
+      } @empty {
+        <p class="panel">Todavía no hay sesiones registradas.
+          @if (!rutinas().length && !errorRutinas()) {
+            Crea una rutina para registrar tu primer entrenamiento.
+          }
+        </p>
+      }
+    </div>
+  }
+</section>
