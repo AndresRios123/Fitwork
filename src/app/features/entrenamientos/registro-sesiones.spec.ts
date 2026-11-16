@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/services/auth.service';
 import { Entrenamientos } from './entrenamientos';
 
 describe('Registro de sesiones en Entrenamientos', () => {
-  const claveRutinas = 'fitwork_rutinas';
-  const claveSesiones = 'fitwork_sesiones';
+  const claveRutinas = 'fitwork_rutinas:usuario-prueba';
+  const claveSesiones = 'fitwork_sesiones:usuario-prueba';
 
   beforeEach(() => {
     localStorage.removeItem(claveSesiones);
@@ -23,7 +24,7 @@ describe('Registro de sesiones en Entrenamientos', () => {
   });
 
   it('guarda las series realizadas, muestra el historial y lo recupera al recargar', async () => {
-    const fixture = TestBed.createComponent(Entrenamientos);
+    const fixture = crearEntrenamientos();
     await fixture.whenStable();
     const ventana: HTMLElement = fixture.nativeElement;
     const pagina = ventana.querySelector('app-registro-sesiones')!;
@@ -82,9 +83,16 @@ describe('Registro de sesiones en Entrenamientos', () => {
     fixture.destroy();
     TestBed.resetTestingModule();
     localStorage.removeItem(claveRutinas);
-    const recarga = TestBed.createComponent(Entrenamientos);
+    const recarga = crearEntrenamientos();
     await recarga.whenStable();
     const recargada: HTMLElement = recarga.nativeElement;
     expect(recargada.querySelector('details')?.textContent).toContain('Press de banca');
   });
 });
+
+function crearEntrenamientos() {
+  TestBed.configureTestingModule({
+    providers: [{ provide: AuthService, useValue: { currentUser: () => ({ id: 'usuario-prueba' }) } }],
+  });
+  return TestBed.createComponent(Entrenamientos);
+}

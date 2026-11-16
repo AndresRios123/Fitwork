@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, linkedSignal, signal } from '@angular/core';
 import { FormArray, FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catalogo } from '../ejercicios/catalogo';
 import { Rutina } from './rutina';
@@ -29,7 +29,10 @@ export class RegistroSesiones {
   protected readonly errorRutinas = this.rutinasService.errorLectura;
   protected readonly sesiones = this.sesionesService.sesiones;
   protected readonly estado = this.sesionesService.estado;
-  protected readonly abierto = signal(false);
+  protected readonly abierto = linkedSignal({
+    source: this.sesionesService.usuarioId,
+    computation: () => false,
+  });
   protected readonly rutina = signal<Rutina | null>(null);
   protected readonly error = signal('');
   protected readonly mensaje = signal('');
@@ -85,6 +88,10 @@ export class RegistroSesiones {
   }
 
   protected guardar(): void {
+    if (!this.abierto()) {
+      return;
+    }
+
     this.error.set('');
     const rutina = this.rutina();
     if (!rutina) {
