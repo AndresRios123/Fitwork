@@ -1,7 +1,8 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 
 // Barra superior: hamburguesa (móvil), breadcrumb, notificaciones y menú del usuario.
 @Component({
@@ -16,14 +17,20 @@ export class Topbar {
 
   // Router de Angular: permite saber en qué página estamos.
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
-  // Datos de ejemplo: más adelante vendrán del usuario que inició sesión
-  protected readonly usuario = { nombre: 'Alex Pérez', nivel: 'Nivel intermedio' };
+  // Usuario que inició sesión (viene del AuthService)
+  protected readonly usuario = this.auth.currentUser;
+
   // "Alex Pérez" -> "AP" (se muestra en el avatar)
-  protected readonly iniciales = this.usuario.nombre
-    .split(' ')
-    .map(palabra => palabra[0])
-    .join('');
+  protected readonly iniciales = computed(() =>
+    (this.usuario()?.nombre ?? '')
+      .split(' ')
+      .filter(palabra => palabra)
+      .slice(0, 2)
+      .map(palabra => palabra[0].toUpperCase())
+      .join(''),
+  );
 
   // Indica si el desplegable del usuario está abierto.
   protected readonly menuUsuarioAbierto = signal(false);
@@ -34,7 +41,7 @@ export class Topbar {
       filter(evento => evento instanceof NavigationEnd),
       map(() => this.leerTitulo()),
     ),
-    { initialValue: '' },
+    { initialValue: this.leerTitulo() },
   );
 
   protected alternarMenuUsuario() {
@@ -47,8 +54,7 @@ export class Topbar {
 
   protected cerrarSesion() {
     this.cerrarMenuUsuario();
-    // Se implementa en la fase de autenticación
-    console.log('Cerrar sesión');
+    this.auth.logout();
   }
 
   // Baja hasta la ruta más interna (la página actual) y devuelve su "titulo".
