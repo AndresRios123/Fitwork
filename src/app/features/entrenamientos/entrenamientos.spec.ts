@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { AuthService } from '../../core/services/auth.service';
 import { Entrenamientos } from './entrenamientos';
 
 describe('Entrenamientos', () => {
-  beforeEach(() => localStorage.removeItem('fitwork_rutinas'));
-  afterEach(() => localStorage.removeItem('fitwork_rutinas'));
+  beforeEach(() => localStorage.removeItem('fitwork_rutinas:usuario-prueba'));
+  afterEach(() => localStorage.removeItem('fitwork_rutinas:usuario-prueba'));
 
   it('valida, guarda y vuelve a abrir una rutina con ejercicios del catálogo', async () => {
-    const fixture = TestBed.createComponent(Entrenamientos);
+    const fixture = crearEntrenamientos();
     await fixture.whenStable();
     const pagina: HTMLElement = fixture.nativeElement;
 
@@ -34,7 +35,7 @@ describe('Entrenamientos', () => {
     await fixture.whenStable();
     await enviar();
     expect(pagina.textContent).toContain('Escribe un nombre');
-    expect(localStorage.getItem('fitwork_rutinas')).toBeNull();
+    expect(localStorage.getItem('fitwork_rutinas:usuario-prueba')).toBeNull();
 
     cambiar('[formControlName="nombre"]', 'Tren superior');
     cambiar('select', 'press-banca', 'change');
@@ -61,7 +62,7 @@ describe('Entrenamientos', () => {
     cambiar('[formControlName="nombre"]', 'Pecho');
     await enviar();
     expect(pagina.textContent).toContain('Rutina actualizada.');
-    const guardadas = JSON.parse(localStorage.getItem('fitwork_rutinas')!);
+    const guardadas = JSON.parse(localStorage.getItem('fitwork_rutinas:usuario-prueba')!);
     expect(guardadas).toHaveLength(1);
     expect(guardadas[0]).toMatchObject({
       nombre: 'Pecho',
@@ -70,9 +71,16 @@ describe('Entrenamientos', () => {
 
     fixture.destroy();
     TestBed.resetTestingModule();
-    const recarga = TestBed.createComponent(Entrenamientos);
+    const recarga = crearEntrenamientos();
     await recarga.whenStable();
     const recargada: HTMLElement = recarga.nativeElement;
     expect(recargada.querySelector('app-rutina-tarjeta h2')?.textContent).toBe('Pecho');
   });
 });
+
+function crearEntrenamientos() {
+  TestBed.configureTestingModule({
+    providers: [{ provide: AuthService, useValue: { currentUser: () => ({ id: 'usuario-prueba' }) } }],
+  });
+  return TestBed.createComponent(Entrenamientos);
+}

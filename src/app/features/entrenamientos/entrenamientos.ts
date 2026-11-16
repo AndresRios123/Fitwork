@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catalogo } from '../ejercicios/catalogo';
 import { RegistroSesiones } from './registro-sesiones';
@@ -19,10 +19,14 @@ export class Entrenamientos {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly servicio = inject(RutinasService);
 
+  protected readonly estado = this.servicio.estado;
   protected readonly rutinas = this.servicio.rutinas;
   protected readonly errorLectura = this.servicio.errorLectura;
   protected readonly catalogo = catalogo;
-  protected readonly editor = signal<{ id?: string } | null>(null);
+  protected readonly editor = linkedSignal<string | null, { id?: string } | null>({
+    source: this.servicio.usuarioId,
+    computation: () => null,
+  });
   protected readonly editando = computed(() => !!this.editor()?.id);
   protected readonly mensaje = signal('');
   protected readonly error = signal('');
