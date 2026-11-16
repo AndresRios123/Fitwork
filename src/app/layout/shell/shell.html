@@ -1,0 +1,17 @@
+<!-- Menú lateral. [abierto] le pasa el estado; (cerrar) escucha cuando pide cerrarse. -->
+<app-sidebar [abierto]="menuAbierto()" (cerrar)="cerrarMenu()" />
+
+<!-- Fondo oscuro detrás del sidebar en móvil; al tocarlo se cierra el menú. -->
+@if (menuAbierto()) {
+  <div class="fondo" (click)="cerrarMenu()"></div>
+}
+
+<div class="contenido">
+  <!-- Barra superior. (abrirMenu) se dispara al tocar la hamburguesa. -->
+  <app-topbar (abrirMenu)="alternarMenu()" />
+
+  <!-- Aquí Angular pinta la página de la ruta actual (panel, cardio, etc.). -->
+  <main class="pagina">
+    <router-outlet />
+  </main>
+</div>

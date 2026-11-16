@@ -1,0 +1,95 @@
+<section class="rutinas" aria-labelledby="rutinas-titulo">
+  <header class="encabezado">
+    <div>
+      <h1 id="rutinas-titulo">Rutinas de entrenamiento</h1>
+      <p>Organiza tus ejercicios, series y repeticiones.</p>
+    </div>
+
+    @if (!editor() && !errorLectura()) {
+      <button type="button" class="primario" (click)="abrirEditor()">
+        <i class="ph ph-plus" aria-hidden="true"></i> Nueva rutina
+      </button>
+    }
+  </header>
+
+  @if (errorLectura(); as problema) {
+    <p class="error" role="alert">{{ problema }}</p>
+  }
+
+  <div class="confirmacion" role="status">{{ mensaje() }}</div>
+
+  @if (editor()) {
+    <form class="editor" [formGroup]="formulario" (ngSubmit)="guardar()" aria-labelledby="editor-titulo">
+      <h2 id="editor-titulo">{{ editando() ? 'Editar rutina' : 'Nueva rutina' }}</h2>
+
+      <label class="campo">
+        Nombre de la rutina
+        <input type="text" formControlName="nombre" maxlength="80" placeholder="Ej. Tren superior"
+          [attr.aria-invalid]="formulario.controls.nombre.touched && formulario.controls.nombre.invalid">
+      </label>
+      @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) {
+        <p class="error">Escribe un nombre de hasta 80 caracteres.</p>
+      }
+
+      <div class="filas" formArrayName="ejercicios">
+        @for (fila of ejercicios.controls; track fila; let indice = $index) {
+          <fieldset [formGroupName]="indice">
+            <legend>Ejercicio {{ indice + 1 }}</legend>
+            <div class="fila">
+              <label class="campo">
+                Ejercicio
+                <select formControlName="ejercicioId">
+                  <option value="">Selecciona un ejercicio</option>
+                  @for (ejercicio of catalogo; track ejercicio.id) {
+                    <option [value]="ejercicio.id">{{ ejercicio.nombre }}</option>
+                  }
+                </select>
+              </label>
+              <label class="campo">
+                Series
+                <input type="number" min="1" step="1" formControlName="series">
+              </label>
+              <label class="campo">
+                Repeticiones
+                <input type="number" min="1" step="1" formControlName="repeticiones">
+              </label>
+              <button type="button" [disabled]="ejercicios.length === 1"
+                [attr.aria-label]="'Quitar ejercicio ' + (indice + 1)" (click)="quitarEjercicio(indice)">
+                Quitar
+              </button>
+            </div>
+            @if (fila.touched && fila.invalid) {
+              <p class="error">Elige un ejercicio e ingresa series y repeticiones enteras mayores que cero.</p>
+            }
+          </fieldset>
+        }
+      </div>
+
+      <button type="button" (click)="agregarEjercicio()">
+        <i class="ph ph-plus" aria-hidden="true"></i> Agregar ejercicio
+      </button>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="button" (click)="cerrarEditor()">Cancelar</button>
+        <button type="submit" class="primario">Guardar rutina</button>
+      </div>
+    </form>
+  }
+
+  @if (!errorLectura()) {
+    <ul class="listado" aria-label="Rutinas guardadas" role="list">
+      @for (rutina of rutinas(); track rutina.id) {
+        <li><app-rutina-tarjeta [rutina]="rutina" (editar)="abrirEditor($event)" /></li>
+      } @empty {
+        @if (!editor()) {
+          <li class="vacio">Crea tu primera rutina para reunir los ejercicios de tu próximo entrenamiento.</li>
+        }
+      }
+    </ul>
+  }
+  <app-registro-sesiones />
+</section>

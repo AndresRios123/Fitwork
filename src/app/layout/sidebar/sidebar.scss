@@ -1,0 +1,135 @@
+/* Medidas tomadas del diseño (pixel perfect). Fuente: Manrope. */
+
+/* Contenedor: fijo a la izquierda y ocupa toda la altura */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 25px 16px 15px;
+  overflow-y: auto;
+  background: var(--color-sidebar);
+  color: #fff;
+  transition: transform .25s ease;
+}
+
+/* ---------- Logo ---------- */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 9px;
+}
+
+.logo-icono {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  font-size: 16px;
+}
+
+.logo-texto {
+  position: relative;
+  top: -1px; /* ajuste óptico para alinearlo con el cuadro naranja */
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3.5px;
+  line-height: 1;
+}
+
+/* ---------- Etiqueta "MENÚ" ---------- */
+.etiqueta {
+  margin: 42px 0 16px;
+  padding-left: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 2px;
+  color: #6B6B6B;
+}
+
+/* ---------- Ítems del menú ---------- */
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #AAAAAA;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background .15s ease, color .15s ease;
+}
+
+.item i {
+  font-size: 18px;
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, .04);
+  color: #FFFFFF;
+}
+
+.item.activo {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  box-shadow: 0 6px 18px rgba(255, 107, 44, .28);
+}
+
+/* ---------- Tarjeta inferior ---------- */
+.tarjeta {
+  margin-top: auto; /* la empuja hasta el fondo del sidebar */
+  padding: 15px 16px 16px;
+  border: 1px solid #2D2D2D;
+  border-radius: 10px;
+  background: #1D1D1D;
+}
+
+.tarjeta i {
+  display: block;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-primary);
+}
+
+.tarjeta strong {
+  display: block;
+  margin-top: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.tarjeta p {
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 14px;
+  color: #777777;
+}
+
+/* ---------- Responsive ---------- */
+/* En móvil se esconde a la izquierda y entra cuando tiene la clase "abierto" */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.abierto {
+    transform: translateX(0);
+  }
+}
