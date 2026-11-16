@@ -1,44 +1,29 @@
-import { afterNextRender, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
+import { AlmacenamientoUsuario } from '../../core/services/almacenamiento-usuario';
 import { EjercicioRutina, Rutina } from './rutina';
-
-const clave = 'fitwork_rutinas';
 
 @Injectable({ providedIn: 'root' })
 export class RutinasService {
-  private readonly datos = signal<readonly Rutina[]>([]);
-  private readonly error = signal<string | null>(null);
+  private readonly almacenamiento = inject(AlmacenamientoUsuario);
+  private readonly coleccion = this.almacenamiento.coleccion('fitwork_rutinas', esRutina);
 
-  readonly rutinas = this.datos.asReadonly();
-  readonly errorLectura = this.error.asReadonly();
-
-  constructor() {
-    // El almacenamiento del navegador se lee después del render inicial.
-    afterNextRender(() => {
-      try {
-        const guardado: unknown = JSON.parse(localStorage.getItem(clave) ?? '[]');
-        if (!Array.isArray(guardado) || !guardado.every(esRutina)) {
-          throw new Error('Formato de rutinas desconocido');
-        }
-
-        this.datos.set(guardado);
-      } catch {
-        this.error.set('No se pudieron leer las rutinas guardadas.');
-      }
-    });
-  }
+  readonly usuarioId = this.almacenamiento.usuarioId;
+  readonly estado = this.coleccion.estado;
+  readonly rutinas = this.coleccion.datos;
+  readonly errorLectura = computed(() => this.estado() === 'error'
+    ? 'No se pudieron leer las rutinas guardadas.'
+    : null);
 
   guardar(datos: Omit<Rutina, 'id'>, id?: string): void {
-    if (this.errorLectura()) {
-      throw new Error('No se pueden guardar cambios mientras haya un error de lectura.');
-    }
-
-    const rutinas = this.rutinas();
-    const actualizadas = id
-      ? rutinas.map(rutina => rutina.id === id ? { ...datos, id } : rutina)
-      : [...rutinas, { ...datos, id: crypto.randomUUID() }];
-
-    localStorage.setItem(clave, JSON.stringify(actualizadas));
-    this.datos.set(actualizadas);
+    this.coleccion.actualizar(rutinas => {
+      if (!id) {
+        return [...rutinas, { ...datos, id: crypto.randomUUID() }];
+      }
+      if (!rutinas.some(rutina => rutina.id === id)) {
+        throw new Error('No se encontró la rutina en la cuenta activa.');
+      }
+      return rutinas.map(rutina => rutina.id === id ? { ...datos, id } : rutina);
+    });
   }
 }
 

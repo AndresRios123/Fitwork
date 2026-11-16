@@ -1,46 +1,20 @@
-import { afterNextRender, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
+import { AlmacenamientoUsuario } from '../../core/services/almacenamiento-usuario';
 import { EjercicioRealizado, esFechaSesion, SerieRealizada, SesionEntrenamiento } from './sesion';
-
-const clave = 'fitwork_sesiones';
 
 @Injectable({ providedIn: 'root' })
 export class SesionesService {
-  private readonly datos = signal<readonly SesionEntrenamiento[]>([]);
-  private readonly estadoLectura = signal<'cargando' | 'listo' | 'error'>('cargando');
+  private readonly almacenamiento = inject(AlmacenamientoUsuario);
+  private readonly coleccion = this.almacenamiento.coleccion('fitwork_sesiones', esSesion);
 
-  readonly sesiones = this.datos.asReadonly();
-  readonly estado = this.estadoLectura.asReadonly();
-
-  constructor() {
-    afterNextRender(() => {
-      try {
-        this.datos.set(leerSesiones());
-        this.estadoLectura.set('listo');
-      } catch {
-        this.estadoLectura.set('error');
-      }
-    });
-  }
+  readonly usuarioId = this.almacenamiento.usuarioId;
+  readonly estado = this.coleccion.estado;
+  readonly sesiones = computed(() => [...this.coleccion.datos()]
+    .sort((a, b) => b.fecha.localeCompare(a.fecha)));
 
   registrar(datos: Omit<SesionEntrenamiento, 'id'>): void {
-    if (this.estado() !== 'listo') {
-      throw new Error('El historial de sesiones no está disponible.');
-    }
-
-    const nuevas = [{ ...datos, id: crypto.randomUUID() }, ...leerSesiones()]
-      .sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-    localStorage.setItem(clave, JSON.stringify(nuevas));
-    this.datos.set(nuevas);
+    this.coleccion.actualizar(sesiones => [{ ...datos, id: crypto.randomUUID() }, ...sesiones]);
   }
-}
-
-function leerSesiones(): SesionEntrenamiento[] {
-  const datos: unknown = JSON.parse(localStorage.getItem(clave) ?? '[]');
-  if (!Array.isArray(datos) || !datos.every(esSesion)) {
-    throw new Error('Formato de sesiones desconocido.');
-  }
-  return datos.sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
 function esSesion(valor: unknown): valor is SesionEntrenamiento {
