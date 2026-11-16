@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catalogo } from '../ejercicios/catalogo';
+import { RegistroSesiones } from './registro-sesiones';
 import { EjercicioRutina } from './rutina';
 import { RutinaTarjeta } from './rutina-tarjeta';
 import { RutinasService } from './rutinas.service';
@@ -8,7 +9,7 @@ import { RutinasService } from './rutinas.service';
 const enteroPositivo = [Validators.required, Validators.pattern(/^[1-9]\d*$/), Validators.max(Number.MAX_SAFE_INTEGER)];
 
 @Component({
-  imports: [ReactiveFormsModule, RutinaTarjeta],
+  imports: [ReactiveFormsModule, RutinaTarjeta, RegistroSesiones],
   selector: 'app-entrenamientos',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './entrenamientos.scss',
