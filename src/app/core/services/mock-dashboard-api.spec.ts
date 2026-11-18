@@ -20,7 +20,8 @@ describe('MockDashboardApi', () => {
 
     const rendimiento = await esperarRespuesta(api.obtenerRendimiento('30d'));
     expect(rendimiento.puntos).toHaveLength(30);
-    expect(rendimiento.total).toBe(rendimiento.puntos.reduce((suma, punto) => suma + punto.valor, 0));
+    expect(rendimiento.indice).toBe(112.4);
+    expect(rendimiento.puntos.at(-1)?.valor).toBe(112.4);
   });
 
   it.each([['7d', 7], ['3m', 13], ['1a', 12]] as const)('el rango %s tiene %i puntos', async (rango, puntos) => {

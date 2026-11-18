@@ -2,7 +2,7 @@ import { ActividadCardio } from '../../cardio/actividad-cardio';
 import { Rutina } from '../../entrenamientos/rutina';
 import { SesionEntrenamiento } from '../../entrenamientos/sesion';
 import { Objetivo } from '../../objetivos/objetivo';
-import { calcularRendimiento, calcularResumen, DatosUsuario, sumarDias } from './dashboard-calculo';
+import { calcularRendimiento, calcularResumen, DatosUsuario, estimar1RM, sumarDias } from './dashboard-calculo';
 
 const HOY = '2026-11-17';
 
@@ -95,21 +95,59 @@ describe('calcularResumen', () => {
   });
 });
 
-describe('calcularRendimiento', () => {
-  it('suma el volumen por día y lo compara con el periodo anterior', () => {
+describe('calcularRendimiento (progreso de fuerza)', () => {
+  // Press de banca: 1RM 66,7 kg (05/11) -> 88,7 kg (16/11) = +33 %.
+  // Sentadilla: solo un día, no cambia. Índice = 100 × (1,33 + 1) / 2 = 116,5.
+  it('sube en proporción al promedio de mejora de los ejercicios conocidos', () => {
     const rendimiento = calcularRendimiento(sesiones, '7d', HOY);
-    expect(rendimiento.total).toBe(1660);
-    expect(rendimiento.variacion).toBe(232);
-    expect(rendimiento.puntos.map(p => p.valor)).toEqual([0, 500, 0, 0, 0, 1160, 0]);
+    expect(rendimiento.indice).toBe(116.5);
+    expect(rendimiento.variacion).toBe(16.5);
+    expect(rendimiento.puntos.map(p => p.valor)).toEqual([100, 100, 100, 100, 100, 116.5, 116.5]);
     expect(rendimiento.puntos.at(-1)?.fecha).toBe(HOY);
   });
 
-  it.each([['30d', 30], ['3m', 13], ['1a', 12]] as const)('el rango %s tiene %i puntos', (rango, cantidad) => {
-    expect(calcularRendimiento(sesiones, rango, HOY).puntos).toHaveLength(cantidad);
+  it('lista los ejercicios que más mejoraron en el periodo', () => {
+    // Press de banca: 66,7 kg antes del periodo -> 88,7 kg ahora. La sentadilla
+    // empezó dentro del periodo con un solo registro: no cuenta como mejora.
+    expect(calcularRendimiento(sesiones, '7d', HOY).mejoras).toEqual([
+      { ejercicioId: 'press-banca', ejercicio: 'Press de banca', variacion: 33 },
+    ]);
+    // En 1 año, la base del press es su primer registro (05/11): misma mejora.
+    expect(calcularRendimiento(sesiones, '1a', HOY).mejoras.map(m => m.variacion)).toEqual([33]);
   });
 
-  it('no devuelve puntos si no hubo volumen', () => {
-    expect(calcularRendimiento([], '30d', HOY)).toEqual({ total: 0, unidad: 'kg', variacion: null, puntos: [] });
+  it('no muestra mejoras si en el periodo no se superó ninguna marca', () => {
+    const sinMejora = [...sesiones, sesion('s5', HOY, 'pecho', [{ repeticiones: 5, pesoKg: 40 }])];
+    expect(calcularRendimiento(sinMejora, '7d', '2026-11-25').mejoras).toEqual([]);
+  });
+
+  it.each(['30d', '3m', '1a'] as const)('en el rango %s termina hoy con el mismo índice', rango => {
+    const rendimiento = calcularRendimiento(sesiones, rango, HOY);
+    expect(rendimiento.puntos.at(-1)).toEqual({ fecha: HOY, valor: 116.5 });
+    // No hay puntos antes de la primera sesión registrada.
+    expect(rendimiento.puntos[0].fecha >= '2026-11-05').toBe(true);
+  });
+
+  it('un ejercicio nuevo no hace bajar el índice', () => {
+    // Hoy aparece un ejercicio que nunca se había registrado (curl, 20 kg).
+    const nuevo: SesionEntrenamiento = {
+      ...sesion('s4', HOY, 'pierna', []),
+      ejercicios: [{ ejercicioId: 'curl-biceps', nombre: 'Curl', series: [{ repeticiones: 10, pesoKg: 20 }] }],
+    };
+    expect(calcularRendimiento([...sesiones, nuevo], '7d', HOY).indice).toBe(116.5);
+  });
+
+  it('ignora las series sin peso y no muestra puntos sin datos suficientes', () => {
+    expect(calcularRendimiento([], '30d', HOY)).toEqual({ indice: 100, variacion: null, puntos: [], mejoras: [] });
+    // Un solo día con peso no permite comparar.
+    expect(calcularRendimiento([sesiones[0]], '30d', HOY).puntos).toEqual([]);
+    const sinPeso = sesion('x', HOY, 'pecho', [{ repeticiones: 12, pesoKg: null }]);
+    expect(calcularRendimiento([sinPeso, sesiones[0]], '30d', HOY).puntos).toEqual([]);
+  });
+
+  it('estima el 1RM con la fórmula de Epley', () => {
+    expect(estimar1RM(60, 10)).toBe(80);
+    expect(estimar1RM(100, 1)).toBe(100);
   });
 });
 

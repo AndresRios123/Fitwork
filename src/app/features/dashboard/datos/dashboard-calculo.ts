@@ -2,6 +2,7 @@ import {
   ActividadReciente,
   EntrenamientoHoy,
   Estadistica,
+  MejoraEjercicio,
   Objetivo as ObjetivoResumen,
   PuntoRendimiento,
   Rango,
@@ -51,27 +52,158 @@ export function calcularResumen(datos: DatosUsuario, rango: Rango, hoy: string):
   };
 }
 
+/**
+ * Progreso general de fuerza (índice encadenado, 100 = punto de partida).
+ *
+ * 1. Para cada ejercicio con peso se estima el 1RM de cada serie (Epley) y se
+ *    guarda la mejor marca alcanzada hasta cada día.
+ * 2. Cada día que entrenas, el índice se multiplica por el promedio de cuánto
+ *    mejoró la mejor marca de CADA ejercicio que ya conocías (1 si no cambió).
+ * 3. Un ejercicio nuevo entra como referencia sin mover el índice, así que
+ *    agregar ejercicios no lo hace bajar.
+ *
+ * Ej.: con 2 ejercicios, si el press de banca mejora un 10 % y la sentadilla
+ * no cambia, el índice sube un 5 % (de 100 a 105).
+ */
 export function calcularRendimiento(sesiones: readonly SesionEntrenamiento[], rango: Rango, hoy: string): Rendimiento {
+  const marcas = marcasPorDia(sesiones);
+  const historial = historialIndiceFuerza(marcas.dias);
+  const sinDatos: Rendimiento = { indice: 100, variacion: null, puntos: [], mejoras: [] };
+  // Hace falta al menos un ejercicio con peso registrado en dos días distintos.
+  if (!historial.some(dia => dia.comparados > 0)) {
+    return sinDatos;
+  }
+
   const { dias, tramos } = RANGOS[rango];
   const actual = periodo(rango, hoy, 0);
-  const total = volumenEntre(sesiones, actual);
-  const previo = volumenEntre(sesiones, periodo(rango, hoy, 1));
+  // Índice vigente en una fecha: el del último día entrenado hasta esa fecha.
+  const indiceEn = (fecha: string) => {
+    let valor: number | null = null;
+    for (const dia of historial) {
+      if (dia.fecha > fecha) {
+        break;
+      }
+      valor = dia.indice;
+    }
+    return valor;
+  };
 
-  // Divide el periodo en tramos casi iguales; cada punto es el volumen de su tramo.
-  const puntos: PuntoRendimiento[] = Array.from({ length: tramos }, (_, i) => {
-    const tramo = {
-      inicio: sumarDias(actual.inicio, Math.floor((i * dias) / tramos)),
-      fin: sumarDias(actual.inicio, Math.floor(((i + 1) * dias) / tramos) - 1),
-    };
-    return { fecha: tramo.fin, valor: volumenEntre(sesiones, tramo) };
-  });
+  // Un punto por tramo con el índice al final del tramo (si ya había datos).
+  const puntos: PuntoRendimiento[] = [];
+  for (let i = 0; i < tramos; i++) {
+    const fin = sumarDias(actual.inicio, Math.floor(((i + 1) * dias) / tramos) - 1);
+    const valor = indiceEn(fin);
+    if (valor !== null) {
+      puntos.push({ fecha: fin, valor: redondear(valor) });
+    }
+  }
+
+  const indiceHoy = indiceEn(hoy) ?? 100;
+  // Antes del periodo: el último valor previo, o 100 si empezaste dentro del periodo.
+  const indiceAntes = indiceEn(sumarDias(actual.inicio, -1)) ?? 100;
 
   return {
-    total,
-    unidad: 'kg',
-    variacion: variacion(total, previo),
-    puntos: total > 0 ? puntos : [],
+    indice: redondear(indiceHoy),
+    variacion: Math.round((indiceHoy / indiceAntes - 1) * 1000) / 10,
+    puntos,
+    mejoras: mayoresMejoras(marcas, actual),
   };
+}
+
+/**
+ * Los 3 ejercicios cuyo 1RM estimado más subió en el periodo. Se compara la
+ * mejor marca de hoy con la mejor de antes del periodo (o, si el ejercicio
+ * empezó dentro del periodo, con su primer registro). Explica qué movió el índice.
+ */
+function mayoresMejoras({ dias, nombres }: MarcasPorDia, p: Periodo): MejoraEjercicio[] {
+  const antes = new Map<string, number>();
+  const primeroEnPeriodo = new Map<string, number>();
+  const mejor = new Map<string, number>();
+
+  for (const [fecha, marcas] of dias) {
+    if (fecha > p.fin) {
+      break;
+    }
+    for (const [id, marca] of marcas) {
+      if (fecha < p.inicio) {
+        antes.set(id, Math.max(antes.get(id) ?? 0, marca));
+      } else if (!primeroEnPeriodo.has(id)) {
+        primeroEnPeriodo.set(id, marca);
+      }
+      mejor.set(id, Math.max(mejor.get(id) ?? 0, marca));
+    }
+  }
+
+  return [...mejor]
+    .map(([id, marca]) => {
+      const base = antes.get(id) ?? primeroEnPeriodo.get(id)!;
+      return { ejercicioId: id, ejercicio: nombres.get(id) ?? id, variacion: redondear((marca / base - 1) * 100) };
+    })
+    .filter(mejora => mejora.variacion > 0)
+    .sort((a, b) => b.variacion - a.variacion)
+    .slice(0, 3);
+}
+
+/** 1RM estimado con la fórmula de Epley: peso × (1 + reps / 30). */
+export function estimar1RM(pesoKg: number, repeticiones: number): number {
+  return repeticiones <= 1 ? pesoKg : pesoKg * (1 + repeticiones / 30);
+}
+
+interface MarcasPorDia {
+  /** [fecha, mejor 1RM de cada ejercicio ese día], de la fecha más vieja a la más nueva. */
+  readonly dias: readonly (readonly [string, ReadonlyMap<string, number>])[];
+  readonly nombres: ReadonlyMap<string, string>;
+}
+
+/** Mejor 1RM estimado de cada ejercicio por día (solo series con peso). */
+function marcasPorDia(sesiones: readonly SesionEntrenamiento[]): MarcasPorDia {
+  const porDia = new Map<string, Map<string, number>>();
+  const nombres = new Map<string, string>();
+  for (const sesion of sesiones) {
+    for (const ejercicio of sesion.ejercicios) {
+      for (const serie of ejercicio.series) {
+        if (serie.pesoKg) {
+          const dia = porDia.get(sesion.fecha) ?? new Map<string, number>();
+          porDia.set(sesion.fecha, dia);
+          const rm = estimar1RM(serie.pesoKg, serie.repeticiones);
+          dia.set(ejercicio.ejercicioId, Math.max(dia.get(ejercicio.ejercicioId) ?? 0, rm));
+          nombres.set(ejercicio.ejercicioId, ejercicio.nombre);
+        }
+      }
+    }
+  }
+  return { dias: [...porDia].sort(([a], [b]) => a.localeCompare(b)), nombres };
+}
+
+function historialIndiceFuerza(dias: MarcasPorDia['dias']) {
+  const mejores = new Map<string, number>();
+  let indice = 100;
+  const historial: { fecha: string; indice: number; comparados: number }[] = [];
+
+  for (const [fecha, marcas] of dias) {
+    const conocidos = [...mejores.keys()];
+    let comparados = 0;
+    const cambio = conocidos.reduce((suma, id) => {
+      const antes = mejores.get(id)!;
+      const marca = marcas.get(id);
+      if (marca !== undefined) {
+        comparados++;
+      }
+      return suma + Math.max(antes, marca ?? 0) / antes;
+    }, 0);
+    if (conocidos.length) {
+      indice *= cambio / conocidos.length;
+    }
+    for (const [id, marca] of marcas) {
+      mejores.set(id, Math.max(mejores.get(id) ?? 0, marca));
+    }
+    historial.push({ fecha, indice, comparados });
+  }
+  return historial;
+}
+
+function redondear(valor: number): number {
+  return Math.round(valor * 10) / 10;
 }
 
 // ---------- Estadísticas ----------
@@ -159,7 +291,7 @@ function actividadReciente({ sesiones, cardio }: DatosUsuario): ActividadRecient
       titulo: sesion.nombreRutina,
       fecha: sesion.fecha,
       duracionMin: null,
-      detalle: volumen > 0 ? `${formatearNumero(volumen)} kg` : `${series} series`,
+      detalle: volumen > 0 ? `${formatearNumero(volumen)} kg` : `${series} ${series === 1 ? 'serie' : 'series'}`,
     };
   });
   const aerobica = cardio.map((actividad): ActividadReciente => ({

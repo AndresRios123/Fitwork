@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Rango, RANGOS, Rendimiento } from '../../../core/models/dashboard.model';
 import { LineChartPlaceholder } from '../../../shared/ui/line-chart-placeholder/line-chart-placeholder';
 import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
@@ -6,24 +7,31 @@ import { formatearNumero, formatearVariacion } from '../../../shared/utils/forma
 
 @Component({
   selector: 'app-performance-chart',
-  imports: [LineChartPlaceholder, Skeleton],
+  imports: [LineChartPlaceholder, Skeleton, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="titulo-rendimiento" [attr.aria-busy]="cargando()">
       <header>
         <div>
-          <h2 id="titulo-rendimiento">Volumen de entrenamiento</h2>
+          <h2 id="titulo-rendimiento">Progreso de fuerza</h2>
           @if (cargando()) {
             <app-skeleton ancho="8rem" alto="2.25rem" />
           } @else if (rendimiento()?.puntos?.length) {
             @let datos = rendimiento()!;
             <p class="indice">
-              <strong>{{ total() }}</strong>
+              <strong>{{ indice() }}</strong>
               @if (datos.variacion !== null) {
-                <span class="badge" [class.baja]="datos.variacion < 0">{{ variacion() }}</span>
+                <span class="badge" [class.baja]="datos.variacion < 0" [class.igual]="datos.variacion === 0">
+                  {{ variacion() }}
+                </span>
               }
             </p>
-            <p class="ayuda">Repeticiones × kg en el periodo{{ datos.variacion !== null ? ' · vs. periodo anterior' : '' }}</p>
+            <p class="ayuda">
+              100 = tu punto de partida · fuerza estimada (1RM)
+              <abbr [title]="explicacion" aria-label="Cómo se calcula">
+                <i class="ph ph-info" aria-hidden="true"></i>
+              </abbr>
+            </p>
           }
         </div>
         <div class="pestanas" role="group" aria-label="Periodo del gráfico">
@@ -43,6 +51,11 @@ import { formatearNumero, formatearVariacion } from '../../../shared/utils/forma
         </div>
       } @else if (cargando()) {
         <app-skeleton alto="14rem" redondeo="var(--radius-md)" />
+      } @else if (!rendimiento()?.puntos?.length) {
+        <div class="estado">
+          <i class="ph ph-chart-line-up vacio" aria-hidden="true"></i>
+          <p>Registra un mismo ejercicio con peso en dos días distintos<br>para ver cómo evoluciona tu fuerza.</p>
+        </div>
       } @else {
         <!-- El gráfico se descarga en un archivo aparte cuando el navegador está libre. -->
         @defer (on idle) {
@@ -54,6 +67,23 @@ import { formatearNumero, formatearVariacion } from '../../../shared/utils/forma
         } @error {
           <p class="estado">No se pudo mostrar el gráfico.</p>
         }
+
+        <!-- Qué ejercicios movieron el índice + enlace al detalle por ejercicio -->
+        <footer>
+          <div class="mejoras">
+            @if (mejoras().length) {
+              <span class="etiqueta-mejoras">Mayores mejoras</span>
+              <ul role="list">
+                @for (mejora of mejoras(); track mejora.ejercicioId) {
+                  <li><span>{{ mejora.ejercicio }}</span> <strong>{{ mejora.texto }}</strong></li>
+                }
+              </ul>
+            } @else {
+              <span class="etiqueta-mejoras">Sin nuevas marcas en este periodo</span>
+            }
+          </div>
+          <a routerLink="/progreso">Ver por ejercicio <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+        </footer>
       }
     </section>
   `,
@@ -161,6 +191,84 @@ import { formatearNumero, formatearVariacion } from '../../../shared/utils/forma
     }
 
     .estado i { font-size: 2rem; color: var(--color-danger); }
+    .estado i.vacio { color: var(--gray-300); }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: .75rem 1rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gray-100);
+    }
+
+    .mejoras {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .5rem;
+      min-width: 0;
+    }
+
+    .etiqueta-mejoras {
+      color: var(--gray-500);
+      font-size: .8125rem;
+      font-weight: 600;
+    }
+
+    .mejoras ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mejoras li {
+      display: inline-flex;
+      gap: .375rem;
+      padding: .25rem .625rem;
+      border-radius: 999px;
+      background: var(--gray-100);
+      font-size: .8125rem;
+    }
+
+    .mejoras li strong { color: var(--color-success-text); }
+
+    footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+      color: var(--color-primary);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    footer a:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    .badge.igual {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    abbr {
+      display: inline-flex;
+      vertical-align: middle;
+      margin-left: .125rem;
+      color: var(--gray-500);
+      cursor: help;
+      text-decoration: none;
+    }
 
     .reintentar {
       border: 1px solid var(--gray-300);
@@ -177,9 +285,12 @@ export class PerformanceChart {
   readonly reintentar = output<void>();
 
   protected readonly rangos = RANGOS;
-  protected readonly total = computed(() => {
-    const datos = this.rendimiento();
-    return datos ? `${formatearNumero(datos.total)} ${datos.unidad}` : '';
-  });
+  protected readonly mejoras = computed(() => (this.rendimiento()?.mejoras ?? [])
+    .map(mejora => ({ ...mejora, texto: formatearVariacion(mejora.variacion) })));
+  protected readonly indice = computed(() => formatearNumero(this.rendimiento()?.indice ?? 100, 1));
+  protected readonly explicacion =
+    'Para cada ejercicio con peso se estima tu 1RM (peso × (1 + reps / 30)). ' +
+    'Cada vez que superas tu mejor marca, el índice sube en proporción al promedio ' +
+    'de mejora de tus ejercicios. 100 es tu punto de partida.';
   protected readonly variacion = computed(() => formatearVariacion(this.rendimiento()?.variacion ?? 0));
 }

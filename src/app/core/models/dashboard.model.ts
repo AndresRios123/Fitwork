@@ -78,12 +78,21 @@ export interface PuntoRendimiento {
   readonly valor: number;
 }
 
+/** Progreso general de fuerza: índice donde 100 = punto de partida del usuario. */
 export interface Rendimiento {
-  /** Volumen total levantado en el periodo (repeticiones × kg). */
-  readonly total: number;
-  readonly unidad: string;
-  /** Variación en % frente al periodo anterior. null si no hay con qué comparar. */
+  /** Índice actual (p. ej. 112,4 = un 12,4 % más fuerte que al empezar). */
+  readonly indice: number;
+  /** Cuánto cambió el índice dentro del periodo, en %. null si no hay datos. */
   readonly variacion: number | null;
-  /** Un punto por día, semana o mes según el rango. Vacío si no hubo actividad. */
+  /** Índice al final de cada día, semana o mes del rango. Vacío si no hay datos suficientes. */
   readonly puntos: readonly PuntoRendimiento[];
+  /** Ejercicios que más mejoraron en el periodo (máx. 3); explican la subida del índice. */
+  readonly mejoras: readonly MejoraEjercicio[];
+}
+
+export interface MejoraEjercicio {
+  readonly ejercicioId: string;
+  readonly ejercicio: string;
+  /** Mejora del 1RM estimado en el periodo, en %. */
+  readonly variacion: number;
 }
