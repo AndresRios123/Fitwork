@@ -11,7 +11,11 @@ const RESPUESTA: RespuestaAuth = {
 
 describe('AuthService', () => {
   // API falsa: así probamos el servicio sin depender de MockAuthApi
-  let api: { login: ReturnType<typeof vi.fn>; register: ReturnType<typeof vi.fn> };
+  let api: {
+    login: ReturnType<typeof vi.fn>;
+    register: ReturnType<typeof vi.fn>;
+    actualizarPerfil: ReturnType<typeof vi.fn>;
+  };
 
   // Crea el servicio con la API falsa (se llama dentro de cada prueba)
   function crearServicio(): AuthService {
@@ -26,6 +30,7 @@ describe('AuthService', () => {
     api = {
       login: vi.fn().mockResolvedValue(RESPUESTA),
       register: vi.fn().mockResolvedValue(RESPUESTA),
+      actualizarPerfil: vi.fn(),
     };
   });
 
@@ -93,5 +98,26 @@ describe('AuthService', () => {
     expect(auth.currentUser()).toBeNull();
     expect(localStorage.getItem('fitwork_sesion')).toBeNull();
     expect(navegar).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('actualizarPerfil cambia el usuario actual y lo guarda en la sesión', async () => {
+    const auth = crearServicio();
+    await auth.login('ana@correo.com', 'secreta123');
+    const datos = { nombre: 'Ana María', nivel: 'Avanzado', avatar: null, pesoKg: 60, estaturaCm: 165, edad: 28 };
+    api.actualizarPerfil.mockResolvedValue({ ...RESPUESTA.usuario, ...datos });
+
+    await auth.actualizarPerfil(datos);
+
+    expect(api.actualizarPerfil).toHaveBeenCalledWith('1', datos);
+    expect(auth.currentUser()).toMatchObject({ nombre: 'Ana María', nivel: 'Avanzado', pesoKg: 60 });
+    expect(auth.token()).toBe('token-de-prueba');
+    expect(localStorage.getItem('fitwork_sesion')).toContain('Ana María');
+  });
+
+  it('actualizarPerfil falla si no hay sesión', async () => {
+    const auth = crearServicio();
+    const datos = { nombre: 'Ana', nivel: 'Principiante', avatar: null, pesoKg: null, estaturaCm: null, edad: null };
+    await expect(auth.actualizarPerfil(datos)).rejects.toThrow('iniciar sesión');
+    expect(api.actualizarPerfil).not.toHaveBeenCalled();
   });
 });

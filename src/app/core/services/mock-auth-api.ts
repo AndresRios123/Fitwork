@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Usuario } from '../models/user.model';
+import { DatosPerfil, Usuario } from '../models/user.model';
 import { AuthApi, DatosRegistro, RespuestaAuth } from './auth-api';
 
 // Cómo se guarda un usuario en el "servidor falso": nunca la contraseña,
@@ -49,6 +49,29 @@ export class MockAuthApi extends AuthApi {
     localStorage.setItem(CLAVE_USUARIOS, JSON.stringify([...usuarios, nuevo]));
 
     return { token: crypto.randomUUID(), usuario: quitarSecretos(nuevo) };
+  }
+
+  async actualizarPerfil(id: string, datos: DatosPerfil): Promise<Usuario> {
+    await esperar(400);
+
+    const usuarios = this.leerUsuarios();
+    const indice = usuarios.findIndex(u => u.id === id);
+    if (indice === -1) {
+      throw new Error('No se encontró la cuenta. Vuelve a iniciar sesión.');
+    }
+
+    // Se copian solo los campos editables: nunca el correo, el hash ni la sal.
+    const { avatar, ...resto } = datos;
+    const actualizado: UsuarioGuardado = { ...usuarios[indice], ...resto };
+    if (avatar) {
+      actualizado.avatar = avatar;
+    } else {
+      delete actualizado.avatar;
+    }
+    usuarios[indice] = actualizado;
+    localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios));
+
+    return quitarSecretos(actualizado);
   }
 
   private leerUsuarios(): UsuarioGuardado[] {

@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { DatosPerfil } from '../models/user.model';
 import { AuthApi, DatosRegistro, RespuestaAuth } from './auth-api';
 
 const CLAVE_SESION = 'fitwork_sesion';
@@ -28,6 +29,16 @@ export class AuthService {
 
   async register(datos: DatosRegistro): Promise<void> {
     this.guardarSesion(await this.api.register(datos));
+  }
+
+  /** Guarda el perfil y actualiza al usuario actual (topbar, saludo, etc. se enteran solos). */
+  async actualizarPerfil(datos: DatosPerfil): Promise<void> {
+    const sesion = this.sesion();
+    if (!sesion) {
+      throw new Error('Necesitas iniciar sesión para guardar tu perfil.');
+    }
+    const usuario = await this.api.actualizarPerfil(sesion.usuario.id, datos);
+    this.guardarSesion({ ...sesion, usuario });
   }
 
   logout(): void {

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Shell } from './layout/shell/shell';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { cambiosSinGuardarGuard } from './core/guards/cambios-sin-guardar.guard';
 
 // Lista de URLs de la app y qué componente se muestra en cada una.
 export const routes: Routes = [
@@ -28,7 +29,7 @@ export const routes: Routes = [
       { path: 'cardio', data: { titulo: 'Cardio' }, loadComponent: () => import('./features/cardio/cardio').then(m => m.Cardio) },
       { path: 'records', data: { titulo: 'Récords personales' }, loadComponent: () => import('./features/records/records').then(m => m.Records) },
       { path: 'objetivos', data: { titulo: 'Objetivos' }, loadComponent: () => import('./features/objetivos/objetivos').then(m => m.Objetivos) },
-      { path: 'perfil', data: { titulo: 'Perfil' }, loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil) },
+      { path: 'perfil', data: { titulo: 'Perfil' }, canDeactivate: [cambiosSinGuardarGuard], loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil) },
       { path: 'configuracion', data: { titulo: 'Configuración' }, loadComponent: () => import('./features/configuracion/configuracion').then(m => m.Configuracion) },
       { path: 'ayuda', data: { titulo: 'Ayuda y soporte' }, loadComponent: () => import('./features/ayuda/ayuda').then(m => m.Ayuda) },
     ],
