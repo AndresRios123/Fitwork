@@ -1,0 +1,39 @@
+<section class="records" aria-labelledby="records-titulo">
+  <header>
+    <h1 id="records-titulo">Récords personales</h1>
+    <p>Tus mejores marcas por ejercicio, calculadas a partir de las series que registraste.</p>
+  </header>
+
+  @if (estado() === 'error') {
+    <p class="error" role="alert">No se pudieron leer tus sesiones de entrenamiento.</p>
+  } @else if (estado() === 'listo') {
+    @if (records().length) {
+      <div class="filtros">
+        <label>
+          Buscar ejercicio
+          <input type="search" [formControl]="busqueda" placeholder="Ej. press de banca">
+        </label>
+        <p>En empates se muestra la primera fecha en que alcanzaste la marca.</p>
+      </div>
+      <p class="resultados" role="status">{{ resultados().length }} {{ resultados().length === 1 ? 'ejercicio' : 'ejercicios' }}</p>
+      <ul class="tarjetas" role="list" aria-label="Récords por ejercicio">
+        @for (record of resultados(); track record.ejercicioId) {
+          <li><app-record-tarjeta [record]="record" /></li>
+        } @empty {
+          <li class="vacio">
+            <p>No encontramos ejercicios con esa búsqueda.</p>
+            <button type="button" (click)="busqueda.reset()">Limpiar búsqueda</button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="vacio">
+        <h2>Aún no tienes marcas registradas</h2>
+        <p>Registra una sesión con tus series, repeticiones y peso para ver tus récords.</p>
+        <a routerLink="/entrenamientos">Ir a Entrenamientos</a>
+      </div>
+    }
+  } @else if (estado() === 'cargando') {
+    <p role="status">Cargando tus marcas…</p>
+  }
+</section>

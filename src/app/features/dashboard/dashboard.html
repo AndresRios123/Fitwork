@@ -1,0 +1,44 @@
+<div class="dashboard">
+  <!-- [(rango)]: two-way binding con model() en el hijo -->
+  <app-dashboard-header class="encabezado" [nombre]="nombre()" [ahora]="ahora()" [(rango)]="rango" />
+
+  @let datos = resumen.hasValue() ? resumen.value() : null;
+  @let datosGrafico = rendimiento.hasValue() ? rendimiento.value() : null;
+
+  <div class="grid">
+    @if (resumen.error()) {
+      <div class="error" role="alert">
+        <i class="ph ph-warning-circle" aria-hidden="true"></i>
+        <div>
+          <strong>No pudimos cargar tu resumen.</strong>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+        </div>
+        <button type="button" (click)="resumen.reload()">Reintentar</button>
+      </div>
+    } @else {
+      <app-stats-row class="fila-stats" [estadisticas]="datos?.estadisticas ?? []" [cargando]="resumen.isLoading()" />
+    }
+
+    <app-performance-chart
+      class="grafico"
+      [class.ancho-completo]="resumen.error()"
+      [rendimiento]="datosGrafico"
+      [cargando]="rendimiento.isLoading()"
+      [error]="!!rendimiento.error()"
+      [(rango)]="rangoGrafico"
+      (reintentar)="rendimiento.reload()"
+    />
+
+    @if (!resumen.error()) {
+      <app-today-workout
+        class="hoy"
+        [entrenamiento]="datos?.entrenamientoHoy ?? null"
+        [cargando]="resumen.isLoading()"
+        (comenzar)="comenzarEntrenamiento($event)"
+      />
+      <app-recent-activity class="tercio" [actividad]="datos?.actividad ?? []" [cargando]="resumen.isLoading()" />
+      <app-recent-records class="tercio" [records]="datos?.records ?? []" [cargando]="resumen.isLoading()" />
+      <app-goals-summary class="tercio" [objetivos]="datos?.objetivos ?? []" [cargando]="resumen.isLoading()" />
+    }
+  </div>
+</div>

@@ -1,0 +1,54 @@
+<section class="catalogo" aria-labelledby="catalogo-titulo">
+  <header class="encabezado">
+    <h1 id="catalogo-titulo">Catálogo de ejercicios</h1>
+    <p>Encuentra ejercicios por grupo muscular o equipo.</p>
+  </header>
+
+  <form class="filtros" [formGroup]="filtros" (submit)="$event.preventDefault()">
+    <label class="campo">
+      Buscar por nombre
+      <span class="busqueda">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" formControlName="busqueda" placeholder="Ej. sentadilla">
+      </span>
+    </label>
+
+    <label class="campo">
+      Grupo muscular
+      <select formControlName="grupo">
+        <option value="">Todos los grupos</option>
+        @for (grupo of grupos; track grupo) {
+          <option [value]="grupo">{{ grupo }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="campo">
+      Equipo
+      <select formControlName="equipo">
+        <option value="">Todos los equipos</option>
+        @for (equipo of equipos; track equipo) {
+          <option [value]="equipo">{{ equipo }}</option>
+        }
+      </select>
+    </label>
+
+    <button type="button" [disabled]="!hayFiltros()" (click)="filtros.reset()">Limpiar filtros</button>
+  </form>
+
+  <p class="resultados" role="status">
+    {{ resultados().length }} {{ resultados().length === 1 ? 'ejercicio' : 'ejercicios' }}
+  </p>
+
+  <ul class="ejercicios" aria-label="Ejercicios" role="list">
+    @for (ejercicio of resultados(); track ejercicio.id) {
+      <li><app-ejercicio-tarjeta [ejercicio]="ejercicio" /></li>
+    } @empty {
+      <li class="vacio">
+        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+        <h2>No encontramos ejercicios</h2>
+        <p>Cambia la búsqueda o limpia los filtros para ver todo el catálogo.</p>
+      </li>
+    }
+  </ul>
+</section>

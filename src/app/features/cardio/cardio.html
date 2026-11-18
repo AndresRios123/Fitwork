@@ -1,0 +1,142 @@
+<section class="cardio" aria-labelledby="cardio-titulo">
+  <header class="encabezado">
+    <div>
+      <h1 id="cardio-titulo">Cardio</h1>
+      <p>Registra tus actividades y compara el tiempo y la distancia de tus entrenamientos.</p>
+    </div>
+    @if (estado() === 'listo' && !editor()) {
+      <button type="button" class="primario" (click)="abrir()">Registrar actividad</button>
+    }
+  </header>
+
+  @if (aviso(); as mensaje) {
+    <p class="aviso" [class.error]="mensaje.error" [attr.role]="mensaje.error ? 'alert' : 'status'">{{ mensaje.texto }}</p>
+  }
+
+  @if (estado() === 'error') {
+    <p class="error" role="alert">No se pudo leer tu historial de cardio.</p>
+  } @else if (estado() === 'cargando') {
+    <p role="status">Cargando tus actividades…</p>
+  } @else if (estado() === 'listo') {
+    @if (editor(); as edicion) {
+      <form class="panel editor" [formGroup]="formulario" (ngSubmit)="guardar()" aria-labelledby="editor-titulo">
+        <h2 id="editor-titulo">{{ edicion.id ? 'Editar actividad' : 'Nueva actividad' }}</h2>
+        <div class="campos">
+          <label>
+            Actividad
+            <select formControlName="tipo">
+              @for (tipo of tipos; track tipo) { <option [value]="tipo">{{ tipo }}</option> }
+            </select>
+          </label>
+          <label>
+            Fecha
+            <input type="date" formControlName="fecha" [max]="hoy()" required>
+          </label>
+          <label>
+            Duración (minutos)
+            <input type="number" formControlName="duracionMin" min="0" step="any" required>
+          </label>
+          <label>
+            Distancia (km, opcional)
+            <input type="number" formControlName="distanciaKm" min="0" step="any">
+          </label>
+        </div>
+        @if (formulario.touched && formulario.invalid) {
+          <p class="error" role="alert">Usa una fecha válida hasta hoy y una duración mayor que cero. Si registras distancia, debe ser mayor que cero.</p>
+        }
+        <div class="acciones">
+          <button type="button" (click)="editor.set(null)">Cancelar</button>
+          <button type="submit" class="primario">Guardar actividad</button>
+        </div>
+      </form>
+    }
+
+    <form class="panel campos filtros" [formGroup]="filtros" (submit)="$event.preventDefault()" aria-label="Filtros del historial">
+      <label>
+        Actividad
+        <select formControlName="tipo">
+          <option value="">Todas las actividades</option>
+          @for (tipo of tipos; track tipo) { <option [value]="tipo">{{ tipo }}</option> }
+        </select>
+      </label>
+      <label>Desde<input type="date" formControlName="desde"></label>
+      <label>Hasta<input type="date" formControlName="hasta"></label>
+      <button type="button" (click)="filtros.reset()">Limpiar filtros</button>
+    </form>
+
+    @if (rangoInvalido()) {
+      <p class="error" role="alert">Revisa las fechas. La fecha inicial debe ser anterior o igual a la final.</p>
+    } @else {
+      @let total = resumen();
+      <dl class="metricas" aria-label="Resumen de las actividades filtradas">
+        <div class="panel"><dt>Actividades</dt><dd>{{ total.cantidad | number }}</dd></div>
+        <div class="panel"><dt>Tiempo total</dt><dd>{{ total.minutos | number:'1.0-2' }} <small>min</small></dd></div>
+        <div class="panel"><dt>Distancia registrada</dt><dd>{{ total.distancia | number:'1.0-2' }} <small>km</small></dd>
+          <p>{{ total.conDistancia }} de {{ total.cantidad }} actividades con distancia</p>
+        </div>
+      </dl>
+
+      <section class="panel evolucion" aria-labelledby="evolucion-titulo">
+        <h2 id="evolucion-titulo">Evolución por fecha</h2>
+        <label class="selector-metrica">
+          Mostrar total diario de
+          <select #selector (change)="metrica.set(selector.value === 'distanciaKm' ? 'distanciaKm' : 'duracionMin')">
+            <option value="duracionMin">Tiempo (minutos)</option>
+            <option value="distanciaKm">Distancia (km)</option>
+          </select>
+        </label>
+        <p>El gráfico suma las actividades de cada día según los filtros. Puedes elegir una actividad para comparar tus salidas.</p>
+        @if (puntos().length > 1) {
+          @defer (on viewport) {
+            <app-grafico-evolucion [puntos]="puntos()" [unidad]="metrica() === 'duracionMin' ? 'min' : 'km'" />
+          } @placeholder {
+            <div class="espera">El gráfico se carga al entrar en pantalla.</div>
+          } @loading {
+            <p role="status">Cargando gráfico…</p>
+          } @error {
+            <p class="error">No se pudo cargar el gráfico. Consulta el historial para ver tus registros.</p>
+          }
+        } @else {
+          <p>Registra actividades en al menos dos fechas para ver esta métrica. La distancia requiere un valor registrado.</p>
+        }
+      </section>
+
+      <section aria-labelledby="historial-titulo">
+        <h2 id="historial-titulo">Historial de actividades</h2>
+        <ul class="historial" role="list">
+          @for (actividad of filtradas(); track actividad.id) {
+            <li class="panel">
+              <header class="encabezado">
+                <h3>{{ actividad.tipo }}</h3>
+                <time [attr.datetime]="actividad.fecha">{{ actividad.fecha | date:'dd/MM/yyyy' }}</time>
+              </header>
+              <p>{{ actividad.duracionMin | number:'1.0-2' }} min
+                @if (actividad.distanciaKm !== null) {
+                  · {{ actividad.distanciaKm | number:'1.0-2' }} km
+                }
+              </p>
+              @if (actividad.distanciaKm !== null) {
+                <p>Velocidad media {{ actividad.distanciaKm / actividad.duracionMin * 60 | number:'1.0-2' }} km/h</p>
+              }
+              <div class="acciones">
+                <button type="button" [attr.aria-label]="'Editar ' + actividad.tipo + ' del ' + actividad.fecha" (click)="abrir(actividad.id)">Editar</button>
+                <button type="button" [attr.aria-label]="'Eliminar ' + actividad.tipo + ' del ' + actividad.fecha" (click)="pendienteEliminar.set(actividad.id)">Eliminar</button>
+              </div>
+              @if (pendienteEliminar() === actividad.id) {
+                <div class="confirmacion">
+                  <p>¿Eliminar esta actividad del historial?</p>
+                  <div class="acciones">
+                    <button type="button" (click)="pendienteEliminar.set(null)">Conservar</button>
+                    <button type="button" (click)="eliminar(actividad.id)">Confirmar eliminación</button>
+                  </div>
+                </div>
+              }
+            </li>
+          } @empty {
+            <li class="panel">No hay actividades con estos filtros. Registra tu primera actividad o cambia el periodo.</li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>

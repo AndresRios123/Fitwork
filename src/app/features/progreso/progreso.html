@@ -1,0 +1,89 @@
+<section class="progreso" aria-labelledby="progreso-titulo">
+  <header class="encabezado">
+    <h1 id="progreso-titulo">Progreso de entrenamiento</h1>
+    <p>Consulta cómo han cambiado tus series, repeticiones y cargas a partir de las sesiones que registraste.</p>
+  </header>
+
+  @if (estado() === 'error') {
+    <p class="error" role="alert">No se pudieron leer tus sesiones de entrenamiento.</p>
+  } @else if (estado() === 'listo') {
+    @if (ejercicioActual(); as ejercicio) {
+      <div class="panel filtros">
+        <label>
+          Ejercicio
+          <select #selectorEjercicio (change)="seleccionarEjercicio(selectorEjercicio.value)">
+            @for (opcion of ejercicios(); track opcion.id) {
+              <option [value]="opcion.id" [selected]="opcion.id === ejercicio.id">{{ opcion.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Métrica del gráfico
+          <select #selectorMetrica (change)="seleccionarMetrica(selectorMetrica.value)">
+            @for (opcion of metricas; track opcion.id) {
+              <option [value]="opcion.id" [selected]="opcion.id === metrica().id">{{ opcion.etiqueta }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <section class="panel bloque" aria-labelledby="evolucion-titulo">
+        <h2 id="evolucion-titulo">Evolución de {{ ejercicio.nombre }}</h2>
+        <p>{{ metrica().etiqueta }} por fecha</p>
+        @if (puntos().length > 1) {
+          @defer (on viewport) {
+            <app-grafico-evolucion [puntos]="puntos()" [unidad]="metrica().unidad" />
+          } @placeholder {
+            <div class="espera">El gráfico se carga al entrar en pantalla.</div>
+          } @loading {
+            <p role="status">Cargando gráfico…</p>
+          } @error {
+            <p class="error">No se pudo cargar el gráfico. Puedes consultar los datos por fecha en el historial.</p>
+          }
+        } @else if (metrica().id === 'pesoMaximo') {
+          <p>Necesitas peso registrado para este ejercicio en al menos dos fechas.</p>
+        } @else {
+          <p>El gráfico aparecerá cuando registres este ejercicio en otra fecha.</p>
+        }
+      </section>
+
+      <section class="bloque" aria-labelledby="historial-titulo">
+        <h2 id="historial-titulo">Historial por fecha</h2>
+        <div class="historial">
+          @for (dia of ejercicio.dias; track dia.fecha) {
+            <details class="panel">
+              <summary>
+                <strong><time [attr.datetime]="dia.fecha">{{ dia.fecha | date:'dd/MM/yyyy' }}</time></strong>
+                <span>{{ dia.sesiones.length }} {{ dia.sesiones.length === 1 ? 'sesión' : 'sesiones' }} · {{ dia.series }} {{ dia.series === 1 ? 'serie' : 'series' }} · {{ dia.repeticiones }} reps</span>
+                @if (dia.pesoMaximo !== null) {
+                  <span>Máx. {{ dia.pesoMaximo | number:'1.0-2' }} kg</span>
+                }
+              </summary>
+              @for (sesion of dia.sesiones; track $index) {
+                <div class="sesion">
+                  <h3>{{ sesion.rutina }}</h3>
+                  <ol>
+                    @for (serie of sesion.series; track $index) {
+                      <li>
+                        {{ serie.repeticiones }} repeticiones
+                        @if (serie.pesoKg !== null) {
+                          · {{ serie.pesoKg | number:'1.0-2' }} kg
+                        }
+                      </li>
+                    }
+                  </ol>
+                </div>
+              }
+            </details>
+          }
+        </div>
+      </section>
+    } @else {
+      <div class="panel">
+        <h2>Aún no hay progreso para mostrar</h2>
+        <p>Registra una sesión en Entrenamientos y aquí aparecerán los ejercicios que hiciste.</p>
+        <a routerLink="/entrenamientos">Ir a Entrenamientos</a>
+      </div>
+    }
+  }
+</section>

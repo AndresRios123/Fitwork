@@ -1,0 +1,115 @@
+<section class="objetivos" aria-labelledby="objetivos-titulo">
+  <header class="encabezado">
+    <div>
+      <h1 id="objetivos-titulo">Objetivos</h1>
+      <p>Define una meta y sigue su avance con tus entrenamientos registrados.</p>
+    </div>
+    @if (estado() === 'listo' && !editor()) {
+      <button type="button" class="primario" (click)="abrir()">Crear objetivo</button>
+    }
+  </header>
+
+  <p role="status">{{ notificacion() }}</p>
+
+  @if (estado() === 'error') {
+    <p class="error" role="alert">No se pudieron leer tus objetivos guardados.</p>
+  } @else if (estado() === 'cargando') {
+    <p role="status">Cargando objetivos…</p>
+  } @else if (estado() === 'listo') {
+    @if (editor(); as edicion) {
+      <form class="panel editor" [formGroup]="formulario" (ngSubmit)="guardar()" aria-labelledby="editor-titulo">
+        <h2 id="editor-titulo">{{ edicion.id ? 'Editar objetivo' : 'Nuevo objetivo' }}</h2>
+        <div class="campos">
+          <label>Nombre<input type="text" formControlName="nombre" maxlength="80" placeholder="Ej. Entrenar con constancia"></label>
+          <label>
+            Tipo de meta
+            <select formControlName="tipo">
+              <option value="sesiones">Completar sesiones de entrenamiento</option>
+              <option value="distancia">Acumular distancia de cardio</option>
+              <option value="peso">Alcanzar un peso en un ejercicio</option>
+            </select>
+          </label>
+          @if (tipo() === 'distancia') {
+            <label>
+              Actividad de cardio
+              <select formControlName="actividad">
+                @for (actividad of tiposCardio; track actividad) { <option [value]="actividad">{{ actividad }}</option> }
+              </select>
+            </label>
+          }
+          @if (tipo() === 'peso') {
+            <label>
+              Ejercicio
+              <select formControlName="ejercicioId">
+                <option value="">Selecciona un ejercicio</option>
+                @for (ejercicio of ejercicios; track ejercicio.id) { <option [value]="ejercicio.id">{{ ejercicio.nombre }}</option> }
+              </select>
+            </label>
+          }
+          <label>
+            Meta ({{ tipo() === 'sesiones' ? 'sesiones' : tipo() === 'distancia' ? 'km' : 'kg' }})
+            <input type="number" formControlName="meta" min="0" [step]="tipo() === 'sesiones' ? '1' : 'any'">
+          </label>
+          <label>Fecha de inicio<input type="date" formControlName="inicio"></label>
+          <label>Fecha límite<input type="date" formControlName="fin"></label>
+        </div>
+        <p>Se cuentan los registros desde la fecha de inicio hasta la fecha límite, ambas incluidas.</p>
+        @if (formulario.touched && formulario.invalid) {
+          <p class="error" role="alert">Completa el nombre, una meta mayor que cero y un periodo válido. Las sesiones deben ser enteras. Para una meta de peso, selecciona un ejercicio.</p>
+        }
+        <div class="acciones">
+          <button type="button" (click)="editor.set(null)">Cancelar</button>
+          <button type="submit" class="primario">Guardar objetivo</button>
+        </div>
+      </form>
+    }
+
+    <ul class="tarjetas" role="list" aria-label="Tus objetivos">
+      @for (tarjeta of tarjetas(); track tarjeta.objetivo.id) {
+        @let objetivo = tarjeta.objetivo;
+        @let avance = tarjeta.resultado;
+        <li class="panel">
+          <h2>{{ objetivo.nombre }}</h2>
+          <p>{{ tarjeta.detalle }}</p>
+          <p class="fechas"><time [attr.datetime]="objetivo.inicio">{{ objetivo.inicio | date:'dd/MM/yyyy' }}</time> – <time [attr.datetime]="objetivo.fin">{{ objetivo.fin | date:'dd/MM/yyyy' }}</time></p>
+
+          @if (tarjeta.fuente === 'listo') {
+            <p class="estado">{{ avance.estado }}</p>
+            <p class="valor">{{ avance.actual | number:'1.0-2' }} / {{ objetivo.meta | number:'1.0-2' }} {{ avance.unidad }}</p>
+            <progress max="100" [value]="avance.porcentaje" [attr.aria-label]="'Avance de ' + objetivo.nombre">{{ avance.porcentaje | number:'1.0-0' }}%</progress>
+            <p>{{ avance.porcentaje | number:'1.0-0' }}% de la meta</p>
+            <div class="sugerencia">
+              <h3>Para tu objetivo</h3>
+              <p>{{ avance.sugerencia }}</p>
+              @if (objetivo.tipo === 'peso') {
+                <a routerLink="/progreso">Ver evolución por ejercicio</a>
+              } @else {
+                <a [routerLink]="objetivo.tipo === 'distancia' ? '/cardio' : '/entrenamientos'">Registrar actividad</a>
+              }
+            </div>
+          } @else if (tarjeta.fuente === 'error') {
+            <p class="error" role="alert">No se pudieron leer los registros necesarios para calcular esta meta.</p>
+          } @else {
+            <p role="status">Cargando avance…</p>
+          }
+
+          <div class="acciones">
+            <button type="button" [attr.aria-label]="'Editar ' + objetivo.nombre" (click)="abrir(objetivo.id)">Editar</button>
+            <button type="button" [attr.aria-label]="'Eliminar ' + objetivo.nombre" (click)="pendienteEliminar.set(objetivo.id)">Eliminar</button>
+          </div>
+          @if (pendienteEliminar() === objetivo.id) {
+            <div class="confirmacion">
+              <p>¿Eliminar este objetivo?</p>
+              <div class="acciones">
+                <button type="button" (click)="pendienteEliminar.set(null)">Conservar</button>
+                <button type="button" (click)="eliminar(objetivo.id)">Confirmar eliminación</button>
+              </div>
+            </div>
+          }
+        </li>
+      } @empty {
+        <li class="panel">Crea tu primera meta para seguir tu avance y ver sugerencias basadas en tus registros.</li>
+      }
+    </ul>
+  }
+</section>

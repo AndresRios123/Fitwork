@@ -1,0 +1,103 @@
+<div class="perfil">
+  <header class="encabezado">
+    <h1>Mi perfil</h1>
+    <p>Mantén tus datos al día para que tus estadísticas sean más precisas.</p>
+  </header>
+
+  <div class="grid">
+    <!-- Resumen: avatar, nombre, nivel e IMC -->
+    <aside class="tarjeta resumen" aria-label="Resumen del perfil">
+      <app-avatar-editor
+        [avatar]="avatar()"
+        [iniciales]="iniciales()"
+        [error]="errorAvatar()"
+        (archivoElegido)="elegirFoto($event)"
+        (quitar)="quitarFoto()"
+      />
+      <h2>{{ usuario()?.nombre }}</h2>
+      <p class="correo">{{ usuario()?.email }}</p>
+      <span class="nivel"><i class="ph ph-medal" aria-hidden="true"></i> {{ usuario()?.nivel }}</span>
+
+      <div class="imc">
+        @if (imc(); as imc) {
+          <p class="imc-valor"><strong>{{ imc.texto }}</strong> IMC</p>
+          <p class="imc-categoria" [attr.data-categoria]="imc.categoria">{{ imc.categoria }}</p>
+        } @else {
+          <p class="imc-vacio">Agrega tu peso y estatura para calcular tu IMC.</p>
+        }
+        <small>El IMC es una referencia general y no reemplaza una valoración profesional.</small>
+      </div>
+    </aside>
+
+    <!-- Formulario reactivo -->
+    <form class="tarjeta formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      <h2>Datos personales</h2>
+
+      <div class="campos">
+        <label class="campo ancho">
+          Nombre completo
+          <input formControlName="nombre" autocomplete="name" [attr.aria-invalid]="invalido('nombre')" />
+          @if (invalido('nombre')) {
+            <span class="error-campo">Escribe tu nombre (entre 2 y 60 caracteres).</span>
+          }
+        </label>
+
+        <label class="campo ancho">
+          Correo electrónico
+          <input [value]="usuario()?.email ?? ''" disabled />
+          <span class="ayuda">El correo no se puede cambiar.</span>
+        </label>
+
+        <label class="campo">
+          Peso (kg)
+          <input type="number" formControlName="pesoKg" min="20" max="300" step="0.1" inputmode="decimal"
+                 [attr.aria-invalid]="invalido('pesoKg')" />
+          @if (invalido('pesoKg')) {
+            <span class="error-campo">Entre 20 y 300 kg.</span>
+          }
+        </label>
+
+        <label class="campo">
+          Estatura (cm)
+          <input type="number" formControlName="estaturaCm" min="100" max="250" step="1" inputmode="numeric"
+                 [attr.aria-invalid]="invalido('estaturaCm')" />
+          @if (invalido('estaturaCm')) {
+            <span class="error-campo">Entre 100 y 250 cm.</span>
+          }
+        </label>
+
+        <label class="campo">
+          Edad
+          <input type="number" formControlName="edad" min="13" max="100" step="1" inputmode="numeric"
+                 [attr.aria-invalid]="invalido('edad')" />
+          @if (invalido('edad')) {
+            <span class="error-campo">Un número entero entre 13 y 100.</span>
+          }
+        </label>
+
+        <label class="campo">
+          Nivel
+          <select formControlName="nivel">
+            @for (nivel of niveles; track nivel) {
+              <option [value]="nivel">{{ nivel }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div role="status" class="mensaje">{{ mensaje() }}</div>
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="acciones">
+        <button type="button" class="secundario" (click)="descartar()" [disabled]="guardando() || !tieneCambiosSinGuardar()">
+          Descartar cambios
+        </button>
+        <button type="submit" class="primario" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
