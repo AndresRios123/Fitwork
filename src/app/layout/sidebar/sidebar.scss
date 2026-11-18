@@ -8,9 +8,12 @@
   z-index: 50;
   width: var(--sidebar-width);
   height: 100vh;
+  height: 100dvh; /* alto real visible en móvil (sin las barras del navegador) */
   display: flex;
   flex-direction: column;
   padding: 25px 16px 15px;
+  /* Las reglas por altura (al final) hacen que todo quepa; esto es solo
+     un respaldo para pantallas extremadamente bajas. */
   overflow-y: auto;
   background: var(--color-sidebar);
   color: #fff;
@@ -120,6 +123,51 @@ nav {
   font-size: 10px;
   line-height: 14px;
   color: #777777;
+}
+
+/* ---------- Responsive por ALTURA (para que no aparezca scroll) ----------
+   Medidas: logo + menú ocupan ~510px y la tarjeta ~115px más. */
+
+/* Pantallas bajas: se oculta la tarjeta "Supera tus límites". */
+@media (max-height: 660px) {
+  .tarjeta {
+    display: none;
+  }
+}
+
+/* Más bajas: menú más compacto. */
+@media (max-height: 540px) {
+  .etiqueta {
+    margin: 24px 0 10px;
+  }
+
+  nav {
+    gap: 2px;
+  }
+
+  .item {
+    height: 38px;
+  }
+}
+
+/* Muy bajas (p. ej. celular en horizontal): lo mínimo. */
+@media (max-height: 450px) {
+  .sidebar {
+    padding: 14px 12px 10px;
+  }
+
+  .logo-icono {
+    width: 30px;
+    height: 30px;
+  }
+
+  .etiqueta {
+    margin: 12px 0 6px;
+  }
+
+  .item {
+    height: 34px;
+  }
 }
 
 /* ---------- Responsive ---------- */

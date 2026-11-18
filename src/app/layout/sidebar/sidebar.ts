@@ -32,7 +32,5 @@ export class Sidebar {
     { ruta: '/records', texto: 'Récords personales', icono: 'ph-trophy' },
     { ruta: '/objetivos', texto: 'Objetivos', icono: 'ph-target' },
     { ruta: '/perfil', texto: 'Perfil', icono: 'ph-user' },
-    { ruta: '/configuracion', texto: 'Configuración', icono: 'ph-gear-six' },
-    { ruta: '/ayuda', texto: 'Ayuda y soporte', icono: 'ph-question' },
   ];
 }
