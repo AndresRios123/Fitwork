@@ -1,4 +1,4 @@
-# 🏋️ FitWork
+# FitWork
 
 Aplicación web para registrar y seguir tu entrenamiento: rutinas, sesiones de fuerza, cardio, récords personales, objetivos y un panel con tu progreso.
 
@@ -6,7 +6,7 @@ Proyecto de la asignatura **Electiva III**, desarrollado con **Angular 22**.
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 | Sección | Qué permite hacer |
 |---|---|
@@ -24,7 +24,7 @@ Cada usuario ve **solo sus propios datos**.
 
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 - **Angular 22**: componentes standalone, sin Zone.js (zoneless) y con Signals
 - **TypeScript**
@@ -34,7 +34,7 @@ Cada usuario ve **solo sus propios datos**.
 
 ---
 
-## 🚀 Cómo ejecutar el proyecto
+## Cómo ejecutar el proyecto
 
 ### Requisitos
 - [Node.js](https://nodejs.org/) 22 o superior
@@ -66,7 +66,7 @@ Cada usuario ve **solo sus propios datos**.
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
 src/app/
@@ -91,7 +91,7 @@ src/app/
 
 ---
 
-## 🧩 Buenas prácticas de Angular aplicadas
+## Buenas prácticas de Angular aplicadas
 
 - **Componentes standalone** y arranque con `bootstrapApplication`
 - **Signals** (`signal`, `computed`, `linkedSignal`, `resource`, `toSignal`) y modo **zoneless**
@@ -108,17 +108,17 @@ src/app/
 
 ---
 
-## 💾 Sobre los datos
+## Sobre los datos
 
 Por ahora la app **no tiene backend**. Las cuentas y los datos se guardan en el `localStorage` del navegador, separados por usuario.
 
-> ⚠️ Las contraseñas se guardan cifradas con SHA-256, pero como todo vive en el navegador **no es seguridad real**. Es una simulación mientras se construye la API.
+>  Las contraseñas se guardan cifradas con SHA-256, pero como todo vive en el navegador **no es seguridad real**. Es una simulación mientras se construye la API.
 
 La app está preparada para conectarse a un backend: la autenticación (`AuthApi`) y el panel (`DashboardApi`) funcionan detrás de una interfaz. Para usar una API real solo hay que crear la nueva implementación y cambiarla en `app.config.ts`.
 
 ---
 
-## ✅ Pruebas
+## Pruebas
 
 ```bash
 npm test
@@ -128,7 +128,7 @@ El proyecto cuenta con pruebas unitarias para servicios, guards, cálculos y com
 
 ---
 
-## 🌿 Flujo de trabajo con Git
+## Flujo de trabajo con Git
 
 - `main`: versión estable
 - `develop`: integración de las funcionalidades
