@@ -91,5 +91,6 @@
       }
     </ul>
   }
-  <app-registro-sesiones />
+  <!-- ?rutina=id (desde "Comenzar entrenamiento" del panel) abre el registro con esa rutina -->
+  <app-registro-sesiones [rutinaInicial]="rutina()" />
 </section>

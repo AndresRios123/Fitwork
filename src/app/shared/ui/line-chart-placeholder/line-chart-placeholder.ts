@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { formatearFechaCorta, formatearNumero } from '../../utils/formato';
+import { formatearCantidad, formatearFechaCorta } from '../../utils/formato';
 
 export interface PuntoGrafico {
   readonly fecha: string;
@@ -106,7 +106,10 @@ export class LineChartPlaceholder {
     const valores = puntos.map(punto => punto.valor);
     // Holgura arriba y abajo para que la curva no toque los bordes.
     const holgura = (Math.max(...valores) - Math.min(...valores) || 1) * 0.25;
-    const minimo = Math.min(...valores) - holgura;
+    // Si todos los valores son positivos, la base del gráfico no baja de 0.
+    const minimo = Math.min(...valores) >= 0
+      ? Math.max(0, Math.min(...valores) - holgura)
+      : Math.min(...valores) - holgura;
     const rango = Math.max(...valores) + holgura - minimo;
     const coordenadas = puntos.map((punto, i) => [
       (i / (puntos.length - 1)) * ANCHO,
@@ -131,7 +134,7 @@ export class LineChartPlaceholder {
     }
     const primero = puntos[0];
     const ultimo = puntos.at(-1)!;
-    return `Evolución del rendimiento: de ${formatearNumero(primero.valor, 1)} el ` +
-      `${formatearFechaCorta(primero.fecha)} a ${formatearNumero(ultimo.valor, 1)} el ${formatearFechaCorta(ultimo.fecha)}.`;
+    return `Evolución: de ${formatearCantidad(primero.valor)} el ` +
+      `${formatearFechaCorta(primero.fecha)} a ${formatearCantidad(ultimo.valor)} el ${formatearFechaCorta(ultimo.fecha)}.`;
   });
 }

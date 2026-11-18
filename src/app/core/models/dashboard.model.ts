@@ -27,8 +27,12 @@ export interface EjercicioPlanificado {
 }
 
 export interface EntrenamientoHoy {
+  /** Rutina sugerida; se usa para abrirla al pulsar "Comenzar". */
+  readonly rutinaId: string | null;
   readonly nombre: string;
+  /** Texto corto bajo el nombre, p. ej. "Última vez hace 5 días". */
   readonly enfoque: string;
+  /** Duración aproximada en minutos. */
   readonly duracionMin: number;
   readonly ejercicios: readonly EjercicioPlanificado[];
 }
@@ -39,8 +43,9 @@ export interface ActividadReciente {
   readonly titulo: string;
   /** Fecha ISO (AAAA-MM-DD). */
   readonly fecha: string;
-  readonly duracionMin: number;
-  /** Resumen corto, p. ej. "8.420 kg" o "5,2 km". */
+  /** null cuando no se registró (las sesiones de fuerza no guardan duración). */
+  readonly duracionMin: number | null;
+  /** Resumen corto, p. ej. "8.420 kg" o "5,2 km". Puede ir vacío. */
   readonly detalle: string;
 }
 
@@ -74,9 +79,11 @@ export interface PuntoRendimiento {
 }
 
 export interface Rendimiento {
-  /** Índice actual de rendimiento (0-100). */
-  readonly indice: number;
-  /** Variación en % frente al inicio del periodo. */
-  readonly variacion: number;
+  /** Volumen total levantado en el periodo (repeticiones × kg). */
+  readonly total: number;
+  readonly unidad: string;
+  /** Variación en % frente al periodo anterior. null si no hay con qué comparar. */
+  readonly variacion: number | null;
+  /** Un punto por día, semana o mes según el rango. Vacío si no hubo actividad. */
   readonly puntos: readonly PuntoRendimiento[];
 }

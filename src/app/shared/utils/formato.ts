@@ -8,6 +8,11 @@ export function formatearNumero(valor: number, decimales = 0): string {
   }).format(valor);
 }
 
+/** Hasta 1 decimal, solo si hace falta: 32 -> "32", 5.25 -> "5,3". */
+export function formatearCantidad(valor: number): string {
+  return new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 }).format(valor);
+}
+
 /** 45 -> "45 min", 95 -> "1 h 35 min", 120 -> "2 h". */
 export function formatearDuracion(minutos: number): string {
   const total = Math.max(0, Math.round(minutos));

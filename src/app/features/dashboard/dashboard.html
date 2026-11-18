@@ -34,7 +34,7 @@
         class="hoy"
         [entrenamiento]="datos?.entrenamientoHoy ?? null"
         [cargando]="resumen.isLoading()"
-        (comenzar)="comenzarEntrenamiento()"
+        (comenzar)="comenzarEntrenamiento($event)"
       />
       <app-recent-activity class="tercio" [actividad]="datos?.actividad ?? []" [cargando]="resumen.isLoading()" />
       <app-recent-records class="tercio" [records]="datos?.records ?? []" [cargando]="resumen.isLoading()" />

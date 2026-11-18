@@ -63,7 +63,8 @@ export class Dashboard {
     inject(DestroyRef).onDestroy(() => clearInterval(reloj));
   }
 
-  protected comenzarEntrenamiento(): void {
-    this.router.navigate(['/entrenamientos']);
+  /** Abre Entrenamientos con la rutina lista para registrar (?rutina=id). */
+  protected comenzarEntrenamiento(rutinaId: string | null): void {
+    this.router.navigate(['/entrenamientos'], rutinaId ? { queryParams: { rutina: rutinaId } } : {});
   }
 }

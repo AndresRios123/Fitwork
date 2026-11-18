@@ -25,7 +25,7 @@ import { formatearFechaCorta } from '../../../shared/utils/formato';
               </span>
               <span class="texto">
                 <strong>{{ item.titulo }}</strong>
-                <span>{{ fecha(item.fecha) }} · {{ item.duracionMin | duracion }}</span>
+                <span>{{ fecha(item.fecha) }}@if (item.duracionMin) { · {{ item.duracionMin | duracion }}}</span>
               </span>
               <span class="valor">{{ item.detalle }}</span>
             </li>

@@ -14,14 +14,13 @@ describe('MockDashboardApi', () => {
     return promesa;
   }
 
-  it('devuelve las 4 estadísticas y un rendimiento que termina en 84,2', async () => {
+  it('devuelve las 4 estadísticas y un rendimiento con 30 puntos', async () => {
     const resumen = await esperarRespuesta(api.obtenerResumen('30d'));
     expect(resumen.estadisticas.map(e => e.tipo)).toEqual(['entrenamientos', 'volumen', 'cardio', 'records']);
 
     const rendimiento = await esperarRespuesta(api.obtenerRendimiento('30d'));
-    expect(rendimiento.indice).toBe(84.2);
     expect(rendimiento.puntos).toHaveLength(30);
-    expect(rendimiento.puntos.at(-1)?.valor).toBe(84.2);
+    expect(rendimiento.total).toBe(rendimiento.puntos.reduce((suma, punto) => suma + punto.valor, 0));
   });
 
   it.each([['7d', 7], ['3m', 13], ['1a', 12]] as const)('el rango %s tiene %i puntos', async (rango, puntos) => {

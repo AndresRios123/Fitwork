@@ -14,6 +14,7 @@ const RESUMEN: ResumenDashboard = {
     { tipo: 'records', valor: 5, variacion: null },
   ],
   entrenamientoHoy: {
+    rutinaId: 'rutina-1',
     nombre: 'Tren superior',
     enfoque: 'Fuerza',
     duracionMin: 55,
@@ -28,9 +29,10 @@ const RESUMEN: ResumenDashboard = {
 };
 
 const RENDIMIENTO: Rendimiento = {
-  indice: 84.2,
+  total: 9850,
+  unidad: 'kg',
   variacion: 5.3,
-  puntos: [{ fecha: '2026-11-16', valor: 80 }, { fecha: '2026-11-17', valor: 84.2 }],
+  puntos: [{ fecha: '2026-11-16', valor: 4200 }, { fecha: '2026-11-17', valor: 5650 }],
 };
 
 const VACIO: ResumenDashboard = { ...RESUMEN, entrenamientoHoy: null, actividad: [], records: [], objetivos: [] };
@@ -94,7 +96,7 @@ describe('Dashboard', () => {
     expect(pagina.querySelectorAll('app-stat-card')).toHaveLength(4);
     expect(pagina.textContent).toContain('42.380 kg');
     expect(pagina.textContent).toContain('1 h 35 min');
-    expect(pagina.textContent).toContain('84,2');
+    expect(pagina.querySelector('app-performance-chart')?.textContent).toContain('9.850 kg');
     expect(pagina.querySelector('app-today-workout')?.textContent).toContain('Tren superior');
     expect(pagina.querySelector('app-today-workout')?.textContent).toContain('7'); // 4 + 3 series
     expect(pagina.querySelectorAll('app-stat-card app-skeleton')).toHaveLength(0);
@@ -141,13 +143,13 @@ describe('Dashboard', () => {
     api.obtenerResumen.mockResolvedValue(VACIO);
     const { pagina } = await crear();
 
-    expect(pagina.textContent).toContain('Día de descanso');
+    expect(pagina.textContent).toContain('Sin rutinas todavía');
     expect(pagina.textContent).toContain('Aún no registras actividad');
     expect(pagina.textContent).toContain('Todavía no tienes récords');
     expect(pagina.textContent).toContain('Define tu primer objetivo');
   });
 
-  it('enlaza "Ver todo" a cada página y "Comenzar" navega a entrenamientos', async () => {
+  it('enlaza "Ver todo" a cada página y "Comenzar" abre la rutina sugerida', async () => {
     const { pagina } = await crear();
     const enlaces = Array.from(pagina.querySelectorAll<HTMLAnchorElement>('app-panel-card a'))
       .map(enlace => enlace.getAttribute('href'));
@@ -157,6 +159,6 @@ describe('Dashboard', () => {
     Array.from(pagina.querySelectorAll('app-today-workout button'))
       .find(boton => boton.textContent.includes('Comenzar entrenamiento'))!
       .dispatchEvent(new Event('click'));
-    expect(navegar).toHaveBeenCalledWith(['/entrenamientos']);
+    expect(navegar).toHaveBeenCalledWith(['/entrenamientos'], { queryParams: { rutina: 'rutina-1' } });
   });
 });

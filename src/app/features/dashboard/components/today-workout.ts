@@ -22,7 +22,7 @@ import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
         <dl>
           <div><dt>Ejercicios</dt><dd>{{ hoy.ejercicios.length }}</dd></div>
           <div><dt>Series</dt><dd>{{ totalSeries() }}</dd></div>
-          <div><dt>Duración</dt><dd>{{ hoy.duracionMin | duracion }}</dd></div>
+          <div><dt>Duración aprox.</dt><dd>{{ hoy.duracionMin | duracion }}</dd></div>
         </dl>
 
         <ul role="list">
@@ -31,14 +31,14 @@ import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
           }
         </ul>
 
-        <button type="button" (click)="comenzar.emit()">
+        <button type="button" (click)="comenzar.emit(hoy.rutinaId)">
           <i class="ph ph-play" aria-hidden="true"></i> Comenzar entrenamiento
         </button>
       } @else {
-        <h2 id="titulo-hoy">Día de descanso</h2>
-        <p class="enfoque">No tienes un entrenamiento programado para hoy.</p>
-        <button type="button" (click)="comenzar.emit()">
-          <i class="ph ph-plus" aria-hidden="true"></i> Planificar entrenamiento
+        <h2 id="titulo-hoy">Sin rutinas todavía</h2>
+        <p class="enfoque">Crea tu primera rutina y aquí verás qué entrenar hoy.</p>
+        <button type="button" (click)="comenzar.emit(null)">
+          <i class="ph ph-plus" aria-hidden="true"></i> Crear rutina
         </button>
       }
     </section>
@@ -139,7 +139,8 @@ import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
 export class TodayWorkout {
   readonly entrenamiento = input<EntrenamientoHoy | null>(null);
   readonly cargando = input(false);
-  readonly comenzar = output<void>();
+  /** Emite el id de la rutina a comenzar, o null para ir a crear una. */
+  readonly comenzar = output<string | null>();
 
   protected readonly totalSeries = computed(() =>
     (this.entrenamiento()?.ejercicios ?? []).reduce((total, ejercicio) => total + ejercicio.series, 0),

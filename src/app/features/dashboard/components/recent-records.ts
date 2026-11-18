@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RecordPersonal } from '../../../core/models/dashboard.model';
 import { PanelCard } from '../../../shared/ui/panel-card/panel-card';
 import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
-import { formatearFechaCorta, formatearNumero } from '../../../shared/utils/formato';
+import { formatearCantidad, formatearFechaCorta } from '../../../shared/utils/formato';
 
 @Component({
   selector: 'app-recent-records',
@@ -42,5 +42,5 @@ export class RecentRecords {
   readonly cargando = input(false);
 
   protected readonly fecha = formatearFechaCorta;
-  protected readonly numero = formatearNumero;
+  protected readonly numero = formatearCantidad;
 }

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { Objetivo } from '../../../core/models/dashboard.model';
 import { PanelCard } from '../../../shared/ui/panel-card/panel-card';
 import { Skeleton } from '../../../shared/ui/skeleton/skeleton';
-import { formatearNumero } from '../../../shared/utils/formato';
+import { formatearCantidad } from '../../../shared/utils/formato';
 
 @Component({
   selector: 'app-goals-summary',
@@ -80,6 +80,6 @@ export class GoalsSummary {
   protected readonly progreso = computed(() => this.objetivos().map(objetivo => ({
     ...objetivo,
     porcentaje: objetivo.meta > 0 ? Math.min(100, Math.round((objetivo.actual / objetivo.meta) * 100)) : 0,
-    texto: `${formatearNumero(objetivo.actual)} de ${formatearNumero(objetivo.meta)} ${objetivo.unidad}`,
+    texto: `${formatearCantidad(objetivo.actual)} de ${formatearCantidad(objetivo.meta)} ${objetivo.unidad}`,
   })));
 }

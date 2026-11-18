@@ -17,7 +17,7 @@ import { DashboardApi } from './dashboard-api';
 export const CLAVE_ESCENARIO_MOCK = 'fitwork_dashboard_mock';
 
 const RETRASO_MS = 700;
-const INDICE_ACTUAL = 84.2;
+const VOLUMEN_DIARIO = 1400; // kg aprox. por punto del gráfico
 
 const ESTADISTICAS: Record<Rango, readonly Estadistica[]> = {
   '7d': [
@@ -75,6 +75,7 @@ export class MockDashboardApi extends DashboardApi {
     return {
       estadisticas: ESTADISTICAS[rango],
       entrenamientoHoy: {
+        rutinaId: null,
         nombre: 'Tren superior',
         enfoque: 'Fuerza · Hipertrofia',
         duracionMin: 55,
@@ -108,23 +109,24 @@ export class MockDashboardApi extends DashboardApi {
 
     const { puntos, pasoDias, variacion } = RENDIMIENTO[rango];
     if (escenario === 'vacio') {
-      return { indice: 0, variacion: 0, puntos: [] };
+      return { total: 0, unidad: 'kg', variacion: null, puntos: [] };
     }
 
-    // Curva que sube del valor inicial al actual, con algo de ruido
-    // determinista (siempre igual) para que parezca real.
-    const inicio = INDICE_ACTUAL / (1 + variacion / 100);
+    // Curva que sube poco a poco, con algo de ruido determinista
+    // (siempre igual) para que parezca real.
+    const lista = Array.from({ length: puntos }, (_, i) => {
+      const avance = i / (puntos - 1);
+      const ruido = Math.sin(i * 0.9) * 0.15 + Math.sin(i * 2.3) * 0.08;
+      return {
+        fecha: haceDias((puntos - 1 - i) * pasoDias),
+        valor: Math.round(VOLUMEN_DIARIO * pasoDias * (0.85 + avance * 0.25 + ruido)),
+      };
+    });
     return {
-      indice: INDICE_ACTUAL,
+      total: lista.reduce((suma, punto) => suma + punto.valor, 0),
+      unidad: 'kg',
       variacion,
-      puntos: Array.from({ length: puntos }, (_, i) => {
-        const avance = i / (puntos - 1);
-        const ruido = i === puntos - 1 ? 0 : (Math.sin(i * 0.9) * 0.9 + Math.sin(i * 2.3) * 0.4) * (1 - avance / 2);
-        return {
-          fecha: haceDias((puntos - 1 - i) * pasoDias),
-          valor: redondear(inicio + (INDICE_ACTUAL - inicio) * avance + ruido),
-        };
-      }),
+      puntos: lista,
     };
   }
 }
@@ -153,10 +155,6 @@ function haceDias(dias: number): string {
   const mes = String(fecha.getMonth() + 1).padStart(2, '0');
   const dia = String(fecha.getDate()).padStart(2, '0');
   return `${fecha.getFullYear()}-${mes}-${dia}`;
-}
-
-function redondear(valor: number): number {
-  return Math.round(valor * 10) / 10;
 }
 
 function esperar(ms: number, cancelar?: AbortSignal): Promise<void> {

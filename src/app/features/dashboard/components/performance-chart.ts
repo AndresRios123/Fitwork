@@ -12,16 +12,18 @@ import { formatearNumero, formatearVariacion } from '../../../shared/utils/forma
     <section aria-labelledby="titulo-rendimiento" [attr.aria-busy]="cargando()">
       <header>
         <div>
-          <h2 id="titulo-rendimiento">Rendimiento</h2>
+          <h2 id="titulo-rendimiento">Volumen de entrenamiento</h2>
           @if (cargando()) {
             <app-skeleton ancho="8rem" alto="2.25rem" />
           } @else if (rendimiento()?.puntos?.length) {
             @let datos = rendimiento()!;
             <p class="indice">
-              <strong>{{ indice() }}</strong>
-              <span class="badge" [class.baja]="datos.variacion < 0">{{ variacion() }}</span>
+              <strong>{{ total() }}</strong>
+              @if (datos.variacion !== null) {
+                <span class="badge" [class.baja]="datos.variacion < 0">{{ variacion() }}</span>
+              }
             </p>
-            <p class="ayuda">Índice de rendimiento</p>
+            <p class="ayuda">Repeticiones × kg en el periodo{{ datos.variacion !== null ? ' · vs. periodo anterior' : '' }}</p>
           }
         </div>
         <div class="pestanas" role="group" aria-label="Periodo del gráfico">
@@ -175,6 +177,9 @@ export class PerformanceChart {
   readonly reintentar = output<void>();
 
   protected readonly rangos = RANGOS;
-  protected readonly indice = computed(() => formatearNumero(this.rendimiento()?.indice ?? 0, 1));
+  protected readonly total = computed(() => {
+    const datos = this.rendimiento();
+    return datos ? `${formatearNumero(datos.total)} ${datos.unidad}` : '';
+  });
   protected readonly variacion = computed(() => formatearVariacion(this.rendimiento()?.variacion ?? 0));
 }
