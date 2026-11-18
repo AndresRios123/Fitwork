@@ -21,7 +21,7 @@ export const routes: Routes = [
 
       // Cada página se carga solo cuando se visita (loadComponent = carga diferida).
       // "titulo" es el texto que muestra el breadcrumb del topbar.
-      { path: 'panel', data: { titulo: 'Panel principal' }, loadComponent: () => import('./features/panel/panel').then(m => m.Panel) },
+      { path: 'panel', data: { titulo: 'Panel principal' }, loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard) },
       { path: 'entrenamientos', data: { titulo: 'Entrenamientos' }, loadComponent: () => import('./features/entrenamientos/entrenamientos').then(m => m.Entrenamientos) },
       { path: 'ejercicios', data: { titulo: 'Ejercicios' }, loadComponent: () => import('./features/ejercicios/ejercicios').then(m => m.Ejercicios) },
       { path: 'progreso', data: { titulo: 'Progreso' }, loadComponent: () => import('./features/progreso/progreso').then(m => m.Progreso) },

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catalogo } from '../ejercicios/catalogo';
 import { RegistroSesiones } from './registro-sesiones';
@@ -18,6 +18,9 @@ const enteroPositivo = [Validators.required, Validators.pattern(/^[1-9]\d*$/), V
 export class Entrenamientos {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly servicio = inject(RutinasService);
+
+  /** Query param ?rutina=id. Llega como input() gracias a withComponentInputBinding. */
+  readonly rutina = input<string>();
 
   protected readonly estado = this.servicio.estado;
   protected readonly rutinas = this.servicio.rutinas;

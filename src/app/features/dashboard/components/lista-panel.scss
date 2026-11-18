@@ -1,0 +1,81 @@
+// Estilos compartidos por las listas del panel (actividad, récords, objetivos).
+:host {
+  display: block;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 0;
+  border-top: 1px solid var(--gray-100);
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  font-size: 1.125rem;
+}
+
+.texto {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: .125rem;
+
+  strong {
+    overflow: hidden;
+    font-size: var(--fs-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: var(--gray-500);
+    font-size: .8125rem;
+  }
+}
+
+.valor {
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+}
+
+.vacio {
+  display: grid;
+  place-items: center;
+  gap: .5rem;
+  padding: 1.5rem 0;
+  margin: 0;
+  color: var(--gray-500);
+  font-size: var(--fs-sm);
+  text-align: center;
+
+  i {
+    font-size: 1.75rem;
+    color: var(--gray-300);
+  }
+}
+
+.cargando {
+  display: grid;
+  gap: 1rem;
+}

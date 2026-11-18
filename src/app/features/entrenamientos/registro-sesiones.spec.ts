@@ -88,6 +88,25 @@ describe('Registro de sesiones en Entrenamientos', () => {
     const recargada: HTMLElement = recarga.nativeElement;
     expect(recargada.querySelector('details')?.textContent).toContain('Press de banca');
   });
+
+  it('abre el registro con la rutina indicada en ?rutina= (desde el panel)', async () => {
+    const fixture = crearEntrenamientos();
+    fixture.componentRef.setInput('rutina', 'rutina-1');
+    await fixture.whenStable();
+    const pagina = (fixture.nativeElement as HTMLElement).querySelector('app-registro-sesiones')!;
+
+    expect(pagina.querySelector('form')).not.toBeNull();
+    expect(pagina.querySelector<HTMLSelectElement>('select')?.value).toBe('rutina-1');
+    expect(pagina.querySelectorAll('fieldset')).toHaveLength(2);
+  });
+
+  it('ignora una rutina que no existe en la cuenta', async () => {
+    const fixture = crearEntrenamientos();
+    fixture.componentRef.setInput('rutina', 'no-existe');
+    await fixture.whenStable();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-registro-sesiones form')).toBeNull();
+  });
 });
 
 function crearEntrenamientos() {

@@ -1,5 +1,17 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, linkedSignal, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormArray, FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catalogo } from '../ejercicios/catalogo';
 import { Rutina } from './rutina';
@@ -41,6 +53,31 @@ export class RegistroSesiones {
     Validators.required,
     control => esFechaSesion(control.value) ? null : { fechaInvalida: true },
   ]);
+
+  /** Rutina que se abre automáticamente (viene del panel con ?rutina=id). */
+  readonly rutinaInicial = input<string>();
+
+  constructor() {
+    const host = inject(ElementRef<HTMLElement>);
+    const injector = inject(Injector);
+    let abiertaPara: string | undefined;
+
+    // Cuando llega una rutina inicial y las rutinas ya cargaron, abre el
+    // formulario con esa rutina elegida (una sola vez por id).
+    effect(() => {
+      const id = this.rutinaInicial();
+      const existe = this.estado() === 'listo' && this.rutinas().some(rutina => rutina.id === id);
+      if (!id || !existe || id === abiertaPara) {
+        return;
+      }
+      abiertaPara = id;
+      untracked(() => {
+        this.abrir();
+        this.seleccionarRutina(id);
+      });
+      afterNextRender(() => host.nativeElement.scrollIntoView?.({ behavior: 'smooth', block: 'start' }), { injector });
+    });
+  }
 
   protected abrir(): void {
     const hoy = new Date();

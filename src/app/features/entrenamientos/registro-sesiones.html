@@ -24,7 +24,7 @@
           <select #selector (change)="seleccionarRutina(selector.value)">
             <option value="">Selecciona una rutina</option>
             @for (item of rutinas(); track item.id) {
-              <option [value]="item.id">{{ item.nombre }}</option>
+              <option [value]="item.id" [selected]="item.id === rutina()?.id">{{ item.nombre }}</option>
             }
           </select>
         </label>
