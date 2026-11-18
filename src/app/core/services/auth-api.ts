@@ -1,4 +1,4 @@
-import { Usuario } from '../models/user.model';
+import { DatosPerfil, Usuario } from '../models/user.model';
 
 // Lo que responde el "servidor" al iniciar sesión o registrarse.
 export interface RespuestaAuth {
@@ -19,4 +19,6 @@ export interface DatosRegistro {
 export abstract class AuthApi {
   abstract login(email: string, password: string): Promise<RespuestaAuth>;
   abstract register(datos: DatosRegistro): Promise<RespuestaAuth>;
+  /** Guarda los datos del perfil y devuelve el usuario actualizado. */
+  abstract actualizarPerfil(id: string, datos: DatosPerfil): Promise<Usuario>;
 }
