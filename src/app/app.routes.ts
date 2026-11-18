@@ -30,8 +30,6 @@ export const routes: Routes = [
       { path: 'records', data: { titulo: 'Récords personales' }, loadComponent: () => import('./features/records/records').then(m => m.Records) },
       { path: 'objetivos', data: { titulo: 'Objetivos' }, loadComponent: () => import('./features/objetivos/objetivos').then(m => m.Objetivos) },
       { path: 'perfil', data: { titulo: 'Perfil' }, canDeactivate: [cambiosSinGuardarGuard], loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil) },
-      { path: 'configuracion', data: { titulo: 'Configuración' }, loadComponent: () => import('./features/configuracion/configuracion').then(m => m.Configuracion) },
-      { path: 'ayuda', data: { titulo: 'Ayuda y soporte' }, loadComponent: () => import('./features/ayuda/ayuda').then(m => m.Ayuda) },
     ],
   },
 
